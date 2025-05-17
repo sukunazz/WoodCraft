@@ -1,0 +1,7 @@
+frontend/wood_product/.env
+backend/.env
+
+# Optional: common ignores
+node_modules/
+dist/
+.env
