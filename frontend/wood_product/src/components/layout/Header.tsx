@@ -53,9 +53,9 @@ const Header: React.FC = () => {
 
   const handleLogout = () => {
     // Clear all carts and tokens
-    clearCart(); // Clear cart from context state
-    clearCartFromLocalStorage(); // Clear cart from localStorage
-    api.clearCart(); // Clear any server-side cart if applicable
+    // clearCart(); // Clear cart from context state
+    // clearCartFromLocalStorage(); // Clear cart from localStorage
+    // api.clearCart(); // Clear any server-side cart if applicable
     logout(); // Logout from auth context
     clearTokenFromLocalStorage(); // Clear tokens from localStorage
 

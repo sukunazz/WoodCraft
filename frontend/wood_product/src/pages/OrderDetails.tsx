@@ -450,7 +450,7 @@ const OrderDetail: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const [paymentLoading, setPaymentLoading] = useState(false);
 
-  const KHALTI_PUBLIC_KEY = "test_public_key_12345abcde"; // Replace with your actual key
+  const KHALTI_PUBLIC_KEY = import.meta.env.VITE_KHALTI_PUBLIC_KEY; // Replace with your actual key
 
   useEffect(() => {
     const fetchOrder = async () => {

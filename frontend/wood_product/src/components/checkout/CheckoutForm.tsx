@@ -572,7 +572,7 @@ const CheckoutForm: React.FC = () => {
   const total = validTotalAmount + shipping + tax;
 
   // Khalti configuration
-  const KHALTI_PUBLIC_KEY = "test_public_key_12345abcde"; // Replace with your actual public key
+  const KHALTI_PUBLIC_KEY = import.meta.env.VITE_KHALTI_PUBLIC_KEY; // Replace with your actual public key
 
   useEffect(() => {
     // If we already created an order (for Khalti), but user came back, we should clean up
