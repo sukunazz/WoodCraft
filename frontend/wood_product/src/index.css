@@ -1,4 +1,40 @@
 @import "tailwindcss";
+
+@keyframes profile-fade-up {
+  from {
+    opacity: 0;
+    transform: translate3d(0, 18px, 0);
+  }
+  to {
+    opacity: 1;
+    transform: translate3d(0, 0, 0);
+  }
+}
+
+.profile-fade-up {
+  animation: profile-fade-up 520ms ease-out both;
+}
+
+.profile-fade-up-1 {
+  animation-delay: 120ms;
+}
+
+.profile-fade-up-2 {
+  animation-delay: 220ms;
+}
+
+.profile-fade-up-3 {
+  animation-delay: 320ms;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .profile-fade-up,
+  .profile-fade-up-1,
+  .profile-fade-up-2,
+  .profile-fade-up-3 {
+    animation: none;
+  }
+}
 /* :root {
   font-family: system-ui, Avenir, Helvetica, Arial, sans-serif;
   line-height: 1.5;

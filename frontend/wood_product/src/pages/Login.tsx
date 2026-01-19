@@ -1,33 +1,40 @@
 import React from "react";
 import { Link } from "react-router-dom";
 import LoginForm from "../components/auth/LoginForm";
+import logo from "../assets/react.svg";
 
 const Login: React.FC = () => {
   return (
-    <div className="min-h-screen bg-gray-50 flex flex-col justify-center py-12 sm:px-6 lg:px-8">
-      <div className="sm:mx-auto sm:w-full sm:max-w-md">
-        <img
-          className="mx-auto h-12 w-auto"
-          src="/assets/images/logo.svg"
-          alt="Store Logo"
-        />
-        <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900">
-          Sign in to your account
-        </h2>
-        <p className="mt-2 text-center text-sm text-gray-600">
-          Or{" "}
-          <Link
-            to="/register"
-            className="font-medium text-indigo-600 hover:text-indigo-500"
-          >
-            create a new account
-          </Link>
-        </p>
-      </div>
+    <div className="min-h-screen bg-amber-50/60 flex items-center justify-center px-4 py-16">
+      <div className="relative w-full max-w-5xl">
+        <div className="absolute -left-20 top-10 h-48 w-48 rounded-full bg-amber-200/40 blur-3xl" />
+        <div className="absolute right-0 top-24 h-56 w-56 rounded-full bg-emerald-200/30 blur-3xl" />
 
-      <div className="mt-8 sm:mx-auto sm:w-full sm:max-w-md">
-        <div className="bg-white py-8 px-4 shadow sm:rounded-lg sm:px-10">
-          <LoginForm />
+        <div className="relative grid gap-8 rounded-3xl border border-white/60 bg-white/80 p-8 shadow-2xl backdrop-blur lg:grid-cols-[1.1fr_1fr]">
+          <div className="flex flex-col justify-center space-y-6">
+            <img className="h-12 w-12" src={logo} alt="Store Logo" />
+            <div>
+              <p className="text-xs uppercase tracking-[0.3em] text-amber-700 font-semibold">
+                WoodCraft Studio
+              </p>
+              <h1 className="mt-4 text-3xl font-semibold text-gray-900">
+                Welcome back to your workshop
+              </h1>
+              <p className="mt-3 text-sm text-gray-600">
+                Manage orders, track deliveries, and keep your handcrafted picks close.
+              </p>
+            </div>
+            <div className="text-sm text-gray-600">
+              New here?{" "}
+              <Link to="/register" className="font-semibold text-amber-700 hover:text-amber-800">
+                Create an account
+              </Link>
+            </div>
+          </div>
+
+          <div className="rounded-2xl bg-white px-6 py-8 shadow-lg">
+            <LoginForm />
+          </div>
         </div>
       </div>
     </div>
@@ -35,3 +42,4 @@ const Login: React.FC = () => {
 };
 
 export default Login;
+

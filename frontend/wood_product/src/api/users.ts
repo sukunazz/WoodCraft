@@ -4,9 +4,55 @@ import {
   ApiResponse,
   AuthResponse,
   User,
+  LoginActivityEntry,
 } from "../types";
 
+export const uploadAvatar = async (
+  file: File
+): Promise<ApiResponse<{ avatarUrl: string }>> => {
+  try {
+    const formData = new FormData();
+    formData.append("avatar", file);
+
+    const response = await fetch(`${API_URL}/users/avatar`, {
+      method: "POST",
+      credentials: "include",
+      body: formData,
+    });
+
+    const data = await parseResponse(response);
+
+    if (!response.ok) {
+      return {
+        success: false,
+        error: data.message || "Failed to upload avatar",
+      };
+    }
+
+    return { success: true, data: data };
+  } catch (error) {
+    return { success: false, error: "Network error. Please try again." };
+  }
+};
+
+export type PasswordResetRequest = {
+  email: string;
+};
+
+export type PasswordResetPayload = {
+  token: string;
+  password: string;
+};
+
 const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000/api";
+
+const parseResponse = async (response: Response) => {
+  const contentType = response.headers.get("content-type") || "";
+  if (contentType.includes("application/json")) {
+    return response.json();
+  }
+  return { message: "Unexpected server response" };
+};
 
 // Register a new user
 export const registerUser = async (
@@ -18,10 +64,12 @@ export const registerUser = async (
       headers: {
         "Content-Type": "application/json",
       },
+      credentials: "include",
+      mode: "cors",
       body: JSON.stringify(userData),
     });
 
-    const data = await response.json();
+    const data = await parseResponse(response);
 
     if (!response.ok) {
       return { success: false, error: data.message || "Registration failed" };
@@ -43,17 +91,15 @@ export const loginUser = async (
       headers: {
         "Content-Type": "application/json",
       },
+      credentials: "include",
       body: JSON.stringify(userData),
     });
 
-    const data = await response.json();
+    const data = await parseResponse(response);
 
     if (!response.ok) {
       return { success: false, error: data.message || "Login failed" };
     }
-
-    // Save token to localStorage
-    localStorage.setItem("userToken", data.token);
 
     return { success: true, data: data };
   } catch (error) {
@@ -64,19 +110,11 @@ export const loginUser = async (
 // Get user profile
 export const getUserProfile = async (): Promise<ApiResponse<User>> => {
   try {
-    const token = localStorage.getItem("userToken");
-
-    if (!token) {
-      return { success: false, error: "No authentication token found" };
-    }
-
     const response = await fetch(`${API_URL}/users/profile`, {
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
+      credentials: "include",
     });
 
-    const data = await response.json();
+    const data = await parseResponse(response);
 
     if (!response.ok) {
       return {
@@ -91,27 +129,68 @@ export const getUserProfile = async (): Promise<ApiResponse<User>> => {
   }
 };
 
+export const getAuthStatus = async (): Promise<
+  ApiResponse<{ authenticated: boolean; user: User }>
+> => {
+  try {
+    const response = await fetch(`${API_URL}/users/status`, {
+      credentials: "include",
+    });
+
+    const data = await parseResponse(response);
+
+    if (!response.ok) {
+      return {
+        success: false,
+        error: data.message || "Failed to fetch auth status",
+      };
+    }
+
+    return { success: true, data: data };
+  } catch (error) {
+    return { success: false, error: "Network error. Please try again." };
+  }
+};
+
+export const getLoginActivity = async (): Promise<
+  ApiResponse<{ activity: LoginActivityEntry[] }>
+> => {
+  try {
+    const response = await fetch(`${API_URL}/users/activity`, {
+      credentials: "include",
+    });
+
+    const data = await parseResponse(response);
+
+    if (!response.ok) {
+      return {
+        success: false,
+        error: data.message || "Failed to fetch login activity",
+      };
+    }
+
+    return { success: true, data: data };
+  } catch (error) {
+    return { success: false, error: "Network error. Please try again." };
+  }
+};
+
+
 // Update user profile
 export const updateUserProfile = async (
   userData: Partial<User>
 ): Promise<ApiResponse<User>> => {
   try {
-    const token = localStorage.getItem("userToken");
-
-    if (!token) {
-      return { success: false, error: "No authentication token found" };
-    }
-
     const response = await fetch(`${API_URL}/users/profile`, {
       method: "PUT",
       headers: {
         "Content-Type": "application/json",
-        Authorization: `Bearer ${token}`,
       },
+      credentials: "include",
       body: JSON.stringify(userData),
     });
 
-    const data = await response.json();
+    const data = await parseResponse(response);
 
     if (!response.ok) {
       return {
@@ -136,16 +215,55 @@ export const resendVerification = async (
       headers: {
         "Content-Type": "application/json",
       },
+      credentials: "include",
       body: JSON.stringify({ email }),
     });
 
-    const data = await response.json();
+    const data = await parseResponse(response);
 
     if (!response.ok) {
       return {
         success: false,
         error: data.message || "Failed to resend verification",
       };
+    }
+
+    return { success: true, message: data.message };
+  } catch (error) {
+    return { success: false, error: "Network error. Please try again." };
+  }
+};
+
+export const refreshSession = async (): Promise<ApiResponse<AuthResponse>> => {
+  try {
+    const response = await fetch(`${API_URL}/users/refresh`, {
+      method: "POST",
+      credentials: "include",
+    });
+
+    const data = await parseResponse(response);
+
+    if (!response.ok) {
+      return { success: false, error: data.message || "Failed to refresh" };
+    }
+
+    return { success: true, data: data };
+  } catch (error) {
+    return { success: false, error: "Network error. Please try again." };
+  }
+};
+
+export const logoutUser = async (): Promise<ApiResponse<null>> => {
+  try {
+    const response = await fetch(`${API_URL}/users/logout`, {
+      method: "POST",
+      credentials: "include",
+    });
+
+    const data = await parseResponse(response);
+
+    if (!response.ok) {
+      return { success: false, error: data.message || "Failed to logout" };
     }
 
     return { success: true, message: data.message };
@@ -161,7 +279,7 @@ export const verifyEmail = async (
   try {
     const response = await fetch(`${API_URL}/users/verify/${token}`);
 
-    const data = await response.json();
+    const data = await parseResponse(response);
 
     if (!response.ok) {
       return {
@@ -181,22 +299,16 @@ export const changePassword = async (
   newPassword: string
 ): Promise<ApiResponse<null>> => {
   try {
-    const token = localStorage.getItem("userToken");
-
-    if (!token) {
-      return { success: false, error: "No authentication token found" };
-    }
-
     const response = await fetch(`${API_URL}/users/change-password`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        Authorization: `Bearer ${token}`,
       },
+      credentials: "include",
       body: JSON.stringify({ currentPassword, newPassword }),
     });
 
-    const data = await response.json();
+    const data = await parseResponse(response);
 
     if (!response.ok) {
       return {
@@ -210,3 +322,58 @@ export const changePassword = async (
     return { success: false, error: "Network error. Please try again." };
   }
 };
+
+export const requestPasswordReset = async (
+  payload: PasswordResetRequest
+): Promise<ApiResponse<null>> => {
+  try {
+    const response = await fetch(`${API_URL}/users/forgot-password`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(payload),
+    });
+
+    const data = await parseResponse(response);
+
+    if (!response.ok) {
+      return {
+        success: false,
+        error: data.message || "Failed to request password reset",
+      };
+    }
+
+    return { success: true, message: data.message };
+  } catch (error) {
+    return { success: false, error: "Network error. Please try again." };
+  }
+};
+
+export const resetPassword = async (
+  payload: PasswordResetPayload
+): Promise<ApiResponse<null>> => {
+  try {
+    const response = await fetch(`${API_URL}/users/reset-password/${payload.token}`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ password: payload.password }),
+    });
+
+    const data = await parseResponse(response);
+
+    if (!response.ok) {
+      return {
+        success: false,
+        error: data.message || "Failed to reset password",
+      };
+    }
+
+    return { success: true, message: data.message };
+  } catch (error) {
+    return { success: false, error: "Network error. Please try again." };
+  }
+};
+

@@ -4,9 +4,11 @@ interface AlertProps {
   type: "success" | "error" | "warning" | "info";
   message: string;
   onClose?: () => void;
+  className?: string;
 }
 
-const Alert: React.FC<AlertProps> = ({ type, message, onClose }) => {
+const Alert: React.FC<AlertProps> = ({ type, message, onClose, className }) => {
+
   const alertStyles = {
     success: "bg-green-50 text-green-800 border-green-200",
     error: "bg-red-50 text-red-800 border-red-200",
@@ -75,8 +77,9 @@ const Alert: React.FC<AlertProps> = ({ type, message, onClose }) => {
 
   return (
     <div
-      className={`${alertStyles[type]} border rounded-lg p-4 mb-4 flex items-start`}
+      className={`${alertStyles[type]} border rounded-lg p-4 mb-4 flex items-start ${className || ""}`}
     >
+
       <div className="flex-shrink-0 mr-3">{iconStyles[type]}</div>
       <div className="flex-1">
         <p className="text-sm">{message}</p>

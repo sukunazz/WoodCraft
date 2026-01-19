@@ -207,7 +207,7 @@
 
 import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { useAuth } from "../../hooks/useAuth";
+import { toast } from "react-toastify";
 import Button from "../ui/Button";
 import Alert from "../ui/Alert";
 import { isValidEmail, isValidPassword } from "../../utils/validators";
@@ -273,6 +273,7 @@ const RegisterForm: React.FC = () => {
       setLoading(true);
       const response = await registerUser(formData);
       if (response.success) {
+        toast.success("Account created! Verify your email to continue.");
         navigate("/verify-account");
       } else {
         setError(response.error || "Failed to register");
@@ -286,9 +287,17 @@ const RegisterForm: React.FC = () => {
 
   return (
     <div className="max-w-md mx-auto">
-      <h2 className="text-2xl font-bold text-gray-900 mb-6">
-        Create an Account
-      </h2>
+      <div className="text-center mb-6">
+        <p className="text-xs uppercase tracking-[0.25em] text-amber-700 font-semibold">
+          Build your account
+        </p>
+        <h2 className="mt-3 text-2xl font-semibold text-gray-900">
+          Create your WoodCraft profile
+        </h2>
+        <p className="mt-2 text-sm text-gray-500">
+          Join the workshop to save favorites and track every order.
+        </p>
+      </div>
 
       {error && (
         <Alert
@@ -299,7 +308,7 @@ const RegisterForm: React.FC = () => {
         />
       )}
 
-      <form onSubmit={handleSubmit} className="space-y-6">
+      <form onSubmit={handleSubmit} className="space-y-5">
         <div>
           <label
             htmlFor="name"
@@ -315,46 +324,48 @@ const RegisterForm: React.FC = () => {
             required
             value={formData.name}
             onChange={handleChange}
-            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+            className="mt-2 block w-full rounded-xl border border-gray-200 bg-white px-4 py-3 text-sm shadow-sm focus:border-amber-500 focus:outline-none focus:ring-2 focus:ring-amber-200"
           />
         </div>
 
-        <div>
-          <label
-            htmlFor="email"
-            className="block text-sm font-medium text-gray-700"
-          >
-            Email address
-          </label>
-          <input
-            id="email"
-            name="email"
-            type="email"
-            autoComplete="email"
-            required
-            value={formData.email}
-            onChange={handleChange}
-            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
-          />
-        </div>
+        <div className="grid gap-5 md:grid-cols-2">
+          <div>
+            <label
+              htmlFor="email"
+              className="block text-sm font-medium text-gray-700"
+            >
+              Email address
+            </label>
+            <input
+              id="email"
+              name="email"
+              type="email"
+              autoComplete="email"
+              required
+              value={formData.email}
+              onChange={handleChange}
+              className="mt-2 block w-full rounded-xl border border-gray-200 bg-white px-4 py-3 text-sm shadow-sm focus:border-amber-500 focus:outline-none focus:ring-2 focus:ring-amber-200"
+            />
+          </div>
 
-        <div>
-          <label
-            htmlFor="phone"
-            className="block text-sm font-medium text-gray-700"
-          >
-            Phone Number
-          </label>
-          <input
-            id="phone"
-            name="phone"
-            type="tel"
-            autoComplete="tel"
-            required
-            value={formData.phone}
-            onChange={handleChange}
-            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
-          />
+          <div>
+            <label
+              htmlFor="phone"
+              className="block text-sm font-medium text-gray-700"
+            >
+              Phone Number
+            </label>
+            <input
+              id="phone"
+              name="phone"
+              type="tel"
+              autoComplete="tel"
+              required
+              value={formData.phone}
+              onChange={handleChange}
+              className="mt-2 block w-full rounded-xl border border-gray-200 bg-white px-4 py-3 text-sm shadow-sm focus:border-amber-500 focus:outline-none focus:ring-2 focus:ring-amber-200"
+            />
+          </div>
         </div>
 
         <div>
@@ -372,7 +383,7 @@ const RegisterForm: React.FC = () => {
             required
             value={formData.address}
             onChange={handleChange}
-            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+            className="mt-2 block w-full rounded-xl border border-gray-200 bg-white px-4 py-3 text-sm shadow-sm focus:border-amber-500 focus:outline-none focus:ring-2 focus:ring-amber-200"
           />
         </div>
 
@@ -391,9 +402,9 @@ const RegisterForm: React.FC = () => {
             required
             value={formData.password}
             onChange={handleChange}
-            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+            className="mt-2 block w-full rounded-xl border border-gray-200 bg-white px-4 py-3 text-sm shadow-sm focus:border-amber-500 focus:outline-none focus:ring-2 focus:ring-amber-200"
           />
-          <p className="mt-1 text-xs text-gray-500">
+          <p className="mt-2 text-xs text-gray-500">
             Password must be at least 8 characters long and contain at least one
             uppercase letter, one lowercase letter, and one number.
           </p>
@@ -414,25 +425,25 @@ const RegisterForm: React.FC = () => {
             required
             value={formData.confirmPassword}
             onChange={handleChange}
-            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+            className="mt-2 block w-full rounded-xl border border-gray-200 bg-white px-4 py-3 text-sm shadow-sm focus:border-amber-500 focus:outline-none focus:ring-2 focus:ring-amber-200"
           />
         </div>
 
-        <div className="flex items-center">
+        <div className="flex items-start space-x-3 text-sm text-gray-600">
           <input
             id="terms"
             name="terms"
             type="checkbox"
             required
-            className="h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
+            className="mt-1 h-4 w-4 rounded border-gray-300 text-amber-600 focus:ring-amber-500"
           />
-          <label htmlFor="terms" className="ml-2 block text-sm text-gray-900">
+          <label htmlFor="terms" className="leading-5">
             I agree to the{" "}
-            <a href="#" className="text-indigo-600 hover:text-indigo-500">
+            <a href="#" className="text-amber-700 hover:text-amber-800">
               Terms and Conditions
             </a>{" "}
             and{" "}
-            <a href="#" className="text-indigo-600 hover:text-indigo-500">
+            <a href="#" className="text-amber-700 hover:text-amber-800">
               Privacy Policy
             </a>
           </label>
@@ -450,7 +461,7 @@ const RegisterForm: React.FC = () => {
           Already have an account?{" "}
           <Link
             to="/login"
-            className="font-medium text-indigo-600 hover:text-indigo-500"
+            className="font-medium text-amber-700 hover:text-amber-800"
           >
             Log in
           </Link>

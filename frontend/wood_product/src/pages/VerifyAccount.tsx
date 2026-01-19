@@ -2,6 +2,8 @@ import React, { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { verifyEmail } from "../api/users";
 import Loading from "../components/ui/Loading";
+import logo from "../assets/react.svg";
+
 
 const VerifyAccount: React.FC = () => {
   const { token } = useParams<{ token: string }>();
@@ -46,9 +48,10 @@ const VerifyAccount: React.FC = () => {
       <div className="sm:mx-auto sm:w-full sm:max-w-md">
         <img
           className="mx-auto h-12 w-auto"
-          src="/assets/images/logo.svg"
+          src={logo}
           alt="Store Logo"
         />
+
         <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900">
           Email Verification
         </h2>

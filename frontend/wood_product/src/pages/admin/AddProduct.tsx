@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { addProduct } from "../../api/products";
+import { addProduct, uploadProductImage } from "../../api/products";
+import { toast } from "react-toastify";
 import {
   FaSave,
   FaTimes,
@@ -31,8 +32,10 @@ const AddProduct = () => {
     featured: false,
   });
   const [loading, setLoading] = useState(false);
+  const [uploading, setUploading] = useState(false);
   const [error, setError] = useState(null);
   const [imagePreview, setImagePreview] = useState(null);
+
 
   // Predefined categories for selection
   const categories = [
@@ -113,10 +116,43 @@ const AddProduct = () => {
     }
   };
 
+  const handleImageUpload = async (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setUploading(true);
+    setError(null);
+
+    try {
+      const response = await uploadProductImage(file);
+      if (response.success && response.data?.url) {
+        setFormData((prev) => ({
+          ...prev,
+          images: [response.data.url],
+        }));
+        setImagePreview(response.data.url);
+        toast.success("Image uploaded successfully.");
+      } else {
+        setError(response.error || "Failed to upload image");
+      }
+    } catch (err) {
+      setError("Failed to upload image. Please try again.");
+    } finally {
+      setUploading(false);
+      e.target.value = "";
+    }
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
     setError(null);
+
+    if (!formData.images?.[0]) {
+      setError("Please upload or provide an image URL.");
+      setLoading(false);
+      return;
+    }
 
     try {
       // Convert string values to appropriate types
@@ -142,6 +178,7 @@ const AddProduct = () => {
       const response = await addProduct(productData);
 
       if (response.success) {
+        toast.success("Product created successfully.");
         navigate("/admin/products");
       } else {
         setError(response.error || "Failed to add product");
@@ -416,7 +453,7 @@ const AddProduct = () => {
                   Product Image
                 </h2>
 
-                <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 flex flex-col items-center justify-center h-64 mb-4">
+                <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 flex flex-col items-center justify-center h-64 mb-4 bg-gray-50">
                   {imagePreview ? (
                     <img
                       src={imagePreview}
@@ -428,7 +465,7 @@ const AddProduct = () => {
                     <div className="text-center">
                       <FaUpload className="mx-auto h-12 w-12 text-gray-400" />
                       <p className="mt-2 text-sm text-gray-600">
-                        No image preview available
+                        Drag an image here or upload one.
                       </p>
                     </div>
                   )}
@@ -436,21 +473,37 @@ const AddProduct = () => {
 
                 <div className="space-y-4">
                   <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Upload image
+                    </label>
+                    <label className="flex items-center justify-center gap-2 border border-gray-300 rounded-md px-4 py-2 text-sm font-medium text-gray-700 hover:border-blue-500 hover:text-blue-600 cursor-pointer">
+                      <FaUpload className="text-base" />
+                      {uploading ? "Uploading..." : "Select file"}
+                      <input
+                        type="file"
+                        accept="image/*"
+                        onChange={handleImageUpload}
+                        disabled={uploading}
+                        className="hidden"
+                      />
+                    </label>
+                    <p className="mt-2 text-xs text-gray-500">
+                      Images are uploaded to Cloudinary.
+                    </p>
+                  </div>
+
+                  <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">
-                      Image URL *
+                      Or paste image URL
                     </label>
                     <input
                       type="text"
                       name="image"
-                      required
                       value={formData.images[0] || ""}
                       onChange={handleImageChange}
                       className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
                       placeholder="https://example.com/image.jpg"
                     />
-                    <p className="mt-1 text-xs text-gray-500">
-                      Enter a direct URL to the product image
-                    </p>
                   </div>
                 </div>
               </div>
@@ -465,22 +518,27 @@ const AddProduct = () => {
               >
                 <FaTimes className="mr-2" /> Cancel
               </button>
-              <button
-                type="submit"
-                disabled={loading}
-                className="px-4 py-2 border border-transparent rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 flex items-center"
-              >
-                {loading ? (
-                  <>
-                    <div className="animate-spin rounded-full h-4 w-4 border-t-2 border-b-2 border-white mr-2"></div>
-                    Saving...
-                  </>
-                ) : (
-                  <>
-                    <FaSave className="mr-2" /> Save Product
-                  </>
-                )}
-              </button>
+                <button
+                  type="submit"
+                  disabled={loading || uploading}
+                  className="px-4 py-2 border border-transparent rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 flex items-center"
+                >
+                  {loading ? (
+                    <>
+                      <div className="animate-spin rounded-full h-4 w-4 border-t-2 border-b-2 border-white mr-2"></div>
+                      Saving...
+                    </>
+                  ) : uploading ? (
+                    <>
+                      <div className="animate-spin rounded-full h-4 w-4 border-t-2 border-b-2 border-white mr-2"></div>
+                      Uploading...
+                    </>
+                  ) : (
+                    <>
+                      <FaSave className="mr-2" /> Save Product
+                    </>
+                  )}
+                </button>
             </div>
           </form>
         </div>

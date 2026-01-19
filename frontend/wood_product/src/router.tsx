@@ -266,9 +266,12 @@ import Cart from "./pages/Cart";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
 import VerifyEmail from "./components/auth/VerifyEmail";
+import ForgotPassword from "./pages/ForgotPassword";
+import ResetPassword from "./pages/ResetPassword";
 import NotFound from "./pages/NotFound";
 import About from "./pages/About";
 import Contact from "./pages/Contact";
+
 
 // Protected Pages
 import Checkout from "./pages/Checkout";
@@ -417,7 +420,10 @@ const AppRouter: React.FC = () => {
   const isAuthPage =
     location.pathname === "/login" ||
     location.pathname === "/register" ||
-    location.pathname.startsWith("/verify-account");
+    location.pathname.startsWith("/verify-account") ||
+    location.pathname.startsWith("/forgot-password") ||
+    location.pathname.startsWith("/reset-password");
+
 
   // Select the appropriate layout component based on the route
   const Layout = isAdminRoute
@@ -454,10 +460,13 @@ const AppRouter: React.FC = () => {
               </AuthRoute>
             }
           />
+          <Route path="/forgot-password" element={<ForgotPassword />} />
+          <Route path="/reset-password/:token" element={<ResetPassword />} />
 
           {/* Verification routes */}
           <Route path="/verify-account" element={<VerifyEmail />} />
           <Route path="/verify-account/:token" element={<VerifyEmail />} />
+
 
           {/* Protected Routes (require authentication) */}
           <Route

@@ -367,12 +367,6 @@ export const CartProvider: React.FC<CartProviderProps> = ({ children }) => {
     setError(null);
 
     try {
-      const token = localStorage.getItem("userToken");
-      if (!token) {
-        setLoading(false);
-        return;
-      }
-
       const response = await api.getCart();
 
       if (!response.success) {

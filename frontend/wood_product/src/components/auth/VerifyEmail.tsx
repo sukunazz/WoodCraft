@@ -4,6 +4,8 @@ import { useAuth } from "../../hooks/useAuth";
 import Button from "../ui/Button";
 import Alert from "../ui/Alert";
 import Loading from "../ui/Loading";
+import logo from "../../assets/react.svg";
+
 // Import the API functions with their correct names
 import {
   verifyEmail as verifyEmailApi,
@@ -141,10 +143,11 @@ const VerifyEmail: React.FC = () => {
       <div className="max-w-md w-full">
         <div className="text-center mb-6">
           <img
-            src="/assets/images/logo.svg"
+            src={logo}
             alt="Logo"
             className="h-12 mx-auto"
           />
+
           <h2 className="mt-6 text-2xl font-bold text-gray-900">
             Email Verification
           </h2>

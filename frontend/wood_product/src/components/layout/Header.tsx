@@ -2,11 +2,8 @@ import React, { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../../hooks/useAuth";
 import { useCart } from "../../hooks/useCart";
-import {
-  clearTokenFromLocalStorage,
-  clearCartFromLocalStorage,
-} from "../../utils/localStorage";
-import * as api from "../../api/cart";
+import { clearTokenFromLocalStorage } from "../../utils/localStorage";
+
 
 const Header: React.FC = () => {
   const [isScrolled, setIsScrolled] = useState(false);
@@ -18,7 +15,7 @@ const Header: React.FC = () => {
   const auth = useAuth();
   const user = auth?.user;
   const isAuthenticated = auth?.isAuthenticated || false;
-  const logout = auth?.logout || (() => {});
+  const logout = auth?.logout || (async () => {});
 
   // Fix: Add null check for useCart
   const cart = useCart();
@@ -51,18 +48,13 @@ const Header: React.FC = () => {
     }
   };
 
-  const handleLogout = () => {
-    // Clear all carts and tokens
-    // clearCart(); // Clear cart from context state
-    // clearCartFromLocalStorage(); // Clear cart from localStorage
-    // api.clearCart(); // Clear any server-side cart if applicable
-    logout(); // Logout from auth context
-    clearTokenFromLocalStorage(); // Clear tokens from localStorage
+  const handleLogout = async () => {
+    await logout();
+    clearTokenFromLocalStorage();
 
     setIsProfileMenuOpen(false);
     setIsMobileMenuOpen(false);
 
-    // Force a page reload to ensure all state is reset properly
     window.location.href = "/login";
   };
 
@@ -171,11 +163,19 @@ const Header: React.FC = () => {
               <div className="relative">
                 <button
                   onClick={() => setIsProfileMenuOpen(!isProfileMenuOpen)}
-                  className="flex items-center space-x-1 text-gray-700 hover:text-amber-700"
+                  className="flex items-center space-x-2 text-gray-700 hover:text-amber-700"
                 >
-                  <span className="font-medium">
-                    {user?.name?.split(" ")[0] || "User"}
-                  </span>
+                  <div className="h-9 w-9 rounded-full overflow-hidden border border-amber-200 bg-amber-100 text-amber-700 flex items-center justify-center text-sm font-semibold">
+                    {user?.avatarUrl ? (
+                      <img
+                        src={user.avatarUrl}
+                        alt={user?.name || "User"}
+                        className="h-full w-full object-cover"
+                      />
+                    ) : (
+                      <span>{user?.name?.charAt(0) || "U"}</span>
+                    )}
+                  </div>
                   <svg
                     xmlns="http://www.w3.org/2000/svg"
                     className="h-5 w-5"
@@ -189,6 +189,7 @@ const Header: React.FC = () => {
                     />
                   </svg>
                 </button>
+
                 {isProfileMenuOpen && (
                   <div className="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg py-1 z-10 border border-gray-200">
                     <Link

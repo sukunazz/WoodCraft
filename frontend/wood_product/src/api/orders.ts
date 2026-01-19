@@ -254,18 +254,12 @@ export const createOrder = async (
   }
 ) => {
   try {
-    const token = localStorage.getItem("userToken");
-
-    if (!token) {
-      return { success: false, error: "No authentication token found" };
-    }
-
     const response = await fetch(`${API_URL}/orders`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        Authorization: `Bearer ${token}`,
       },
+      credentials: "include",
       body: JSON.stringify({
         orderItems,
         shippingAddress,
@@ -292,24 +286,21 @@ export const createOrder = async (
 // Get user orders - FIXED: Handle direct array response without success wrapper
 export const getUserOrders = async (): Promise<Order[]> => {
   try {
-    const token = localStorage.getItem("userToken");
-
-    if (!token) {
-      throw new Error("No authentication token found");
-    }
-
     const response = await fetch(`${API_URL}/orders`, {
+      credentials: "include",
+      cache: "no-store",
       headers: {
-        Authorization: `Bearer ${token}`,
+        "Cache-Control": "no-cache",
       },
     });
 
     if (!response.ok) {
-      const errorData = await response.json();
+      const errorData = await response.json().catch(() => ({}));
       throw new Error(errorData.message || "Failed to fetch orders");
     }
 
     const data = await response.json();
+
 
     // Check if the response is an array directly (as shown in your network tab)
     // or if it's wrapped in a data property
@@ -332,16 +323,8 @@ export const getOrderById = async (
   orderId: string
 ): Promise<ApiResponse<Order>> => {
   try {
-    const token = localStorage.getItem("userToken");
-
-    if (!token) {
-      return { success: false, error: "No authentication token found" };
-    }
-
     const response = await fetch(`${API_URL}/orders/${orderId}`, {
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
+      credentials: "include",
     });
 
     const data = await response.json();
@@ -367,18 +350,12 @@ export const updateOrderToPaid = async (
   }
 ): Promise<ApiResponse<Order>> => {
   try {
-    const token = localStorage.getItem("userToken");
-
-    if (!token) {
-      return { success: false, error: "No authentication token found" };
-    }
-
     const response = await fetch(`${API_URL}/orders/${orderId}/pay`, {
       method: "PUT",
       headers: {
         "Content-Type": "application/json",
-        Authorization: `Bearer ${token}`,
       },
+      credentials: "include",
       body: JSON.stringify(paymentResult),
     });
 
@@ -409,18 +386,12 @@ export const updateOrderStatus = async (
   status: string
 ): Promise<ApiResponse<Order>> => {
   try {
-    const token = localStorage.getItem("userToken");
-
-    if (!token) {
-      return { success: false, error: "No authentication token found" };
-    }
-
     const response = await fetch(`${API_URL}/orders/${orderId}/status`, {
       method: "PUT",
       headers: {
         "Content-Type": "application/json",
-        Authorization: `Bearer ${token}`,
       },
+      credentials: "include",
       body: JSON.stringify({ status }),
     });
 

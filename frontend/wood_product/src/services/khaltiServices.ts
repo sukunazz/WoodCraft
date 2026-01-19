@@ -13,7 +13,9 @@ interface KhaltiConfig {
   };
   onSuccess: (payload: any) => void;
   onError: (error: any) => void;
+  onClose?: () => void;
 }
+
 
 export const initiateKhaltiPayment = (config: KhaltiConfig) => {
   // Make sure the Khalti SDK is loaded
@@ -44,8 +46,11 @@ export const initiateKhaltiPayment = (config: KhaltiConfig) => {
       },
       onClose() {
         console.log("Khalti payment widget closed");
-        // You can redirect back to order page or handle as needed
+        if (config.onClose) {
+          config.onClose();
+        }
       },
+
     },
     customerInfo: config.customerInfo,
   });
@@ -62,18 +67,13 @@ export const verifyKhaltiPayment = async (
 ): Promise<any> => {
   try {
     const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000/api";
-    const authToken = localStorage.getItem("userToken");
-
-    if (!authToken) {
-      throw new Error("User not authenticated");
-    }
 
     const response = await fetch(`${API_URL}/payments/khalti/verify`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        Authorization: `Bearer ${authToken}`,
       },
+      credentials: "include",
       body: JSON.stringify({
         token,
         amount,

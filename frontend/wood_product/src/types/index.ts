@@ -5,8 +5,10 @@ export interface User {
   email: string;
   isVerified: boolean;
   isAdmin: boolean;
+  avatarUrl?: string;
   shippingAddress?: ShippingAddress;
 }
+
 
 export interface ShippingAddress {
   address: string;
@@ -21,36 +23,50 @@ export interface AuthResponse {
   email: string;
   isAdmin: boolean;
   isVerified: boolean;
-  token: string;
+  avatarUrl?: string;
+}
+
+export interface LoginActivityEntry {
+  timestamp: string;
+  ip?: string;
+  userAgent?: string;
+  status: "success" | "failed";
 }
 
 // Product related types
 export interface Product {
   _id: string;
   name: string;
-  image: string;
+  image?: string;
+  images?: string[];
   description: string;
   category: string;
   price: number;
-  countInStock: number;
-  rating: number;
-  numReviews: number;
+  countInStock?: number;
+  inStock?: number;
+  rating?: number;
+  numReviews?: number;
   material?: string;
   dimensions?: string;
   weight?: string;
   finishOptions?: string[];
   features?: string[];
   createdAt: string;
-  reviews: Review[];
+  reviews?: Review[];
+  freeShipping?: boolean;
+  salePrice?: number;
 }
 
 export interface Review {
-  _id: string;
-  name: string;
+  _id?: string;
+  name?: string;
+  userName?: string;
+  title?: string;
   rating: number;
   comment: string;
   user: string;
-  createdAt: string;
+  createdAt?: string;
+  date?: string;
 }
 
 // Cart related types
@@ -122,6 +138,8 @@ export interface LoginFormData {
 export interface RegisterFormData {
   name: string;
   email: string;
+  phone?: string;
+  address?: string;
   password: string;
   confirmPassword: string;
 }
@@ -129,10 +147,12 @@ export interface RegisterFormData {
 export interface ProductFormData {
   name: string;
   price: number;
-  image: string;
+  image?: string;
+  images?: string[];
   category: string;
   description: string;
-  countInStock: number;
+  countInStock?: number;
+  inStock?: number;
   material?: string;
   dimensions?: string;
   weight?: string;

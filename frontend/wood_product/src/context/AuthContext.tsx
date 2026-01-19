@@ -108,7 +108,14 @@ import React, {
   useEffect,
   ReactNode,
 } from "react";
-import { loginUser, getUserProfile } from "../api/users"; // adjust path as needed
+import {
+  loginUser,
+  getUserProfile,
+  refreshSession,
+  logoutUser,
+  getAuthStatus,
+} from "../api/users";
+import { clearTokenFromLocalStorage } from "../utils/localStorage";
 import { User } from "../types";
 
 // Define AuthContext type
@@ -117,7 +124,9 @@ type AuthContextType = {
   loading: boolean; // Represents fetching user profile/loading auth state
   isAuthenticated: boolean;
   login: (email: string, password: string) => Promise<void>;
-  logout: () => void;
+  logout: () => Promise<void>;
+  refreshAuth: () => Promise<void>;
+  updateAvatar: (avatarUrl: string) => void;
 };
 
 export const AuthContext = createContext<AuthContextType>({
@@ -127,7 +136,9 @@ export const AuthContext = createContext<AuthContextType>({
   login: async () => {
     throw new Error("Auth context not initialized");
   },
-  logout: () => {},
+  logout: async () => {},
+  refreshAuth: async () => {},
+  updateAvatar: () => {},
 });
 
 export const AuthProvider: React.FC<{ children: ReactNode }> = ({
@@ -139,24 +150,35 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
   // Fetch user profile on initial mount (app load)
   useEffect(() => {
     const fetchProfile = async () => {
-      const token = localStorage.getItem("userToken");
-      if (!token) {
-        setLoading(false);
-        return;
-      }
-
-      const response = await getUserProfile();
-      if (response.success && response.data) {
-        setUser(response.data);
-      } else {
-        localStorage.removeItem("userToken");
+      try {
+        const status = await getAuthStatus();
+        if (status.success && status.data?.authenticated) {
+          setUser(status.data.user);
+        } else {
+          const response = await getUserProfile();
+          if (response.success && response.data) {
+            setUser(response.data);
+          } else {
+            const refreshed = await refreshSession();
+            if (refreshed.success && refreshed.data) {
+              setUser(refreshed.data);
+            } else {
+              clearTokenFromLocalStorage();
+              setUser(null);
+            }
+          }
+        }
+      } catch (error) {
+        clearTokenFromLocalStorage();
         setUser(null);
+      } finally {
+        setLoading(false);
       }
-      setLoading(false);
     };
 
     fetchProfile();
   }, []);
+
 
   // LOGIN: do NOT toggle the global loading state here to avoid UI flicker in the login form
   const login = async (email: string, password: string) => {
@@ -171,7 +193,12 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
       if (profile.success && profile.data) {
         setUser(profile.data);
       } else {
-        throw new Error(profile.error || "Failed to fetch profile");
+        const refreshed = await refreshSession();
+        if (refreshed.success && refreshed.data) {
+          setUser(refreshed.data);
+        } else {
+          throw new Error(profile.error || "Failed to fetch profile");
+        }
       }
     } catch (error) {
       console.error("Login error:", error);
@@ -179,9 +206,43 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
     }
   };
 
-  const logout = () => {
-    localStorage.removeItem("userToken");
-    setUser(null);
+  const refreshAuth = async () => {
+    try {
+      const status = await getAuthStatus();
+      if (status.success && status.data?.authenticated) {
+        setUser(status.data.user);
+        return;
+      }
+
+      const response = await getUserProfile();
+      if (response.success && response.data) {
+        setUser(response.data);
+        return;
+      }
+
+      const refreshed = await refreshSession();
+      if (refreshed.success && refreshed.data) {
+        setUser(refreshed.data);
+      } else {
+        clearTokenFromLocalStorage();
+        setUser(null);
+      }
+    } catch (error) {
+      clearTokenFromLocalStorage();
+      setUser(null);
+    }
+  };
+
+  const logout = async () => {
+    try {
+      await logoutUser();
+    } finally {
+      setUser(null);
+    }
+  };
+
+  const updateAvatar = (avatarUrl: string) => {
+    setUser((prev) => (prev ? { ...prev, avatarUrl } : prev));
   };
 
   return (
@@ -192,11 +253,14 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
         isAuthenticated: !!user,
         login,
         logout,
+        refreshAuth,
+        updateAvatar,
       }}
     >
       {children}
     </AuthContext.Provider>
   );
 };
+
 
 export const useAuth = () => useContext(AuthContext);

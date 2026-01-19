@@ -384,9 +384,10 @@
 // export default OrderDetails;
 
 import React, { useEffect, useState } from "react";
-import { useParams } from "react-router-dom";
-import { getOrderById, updateOrderStatus } from "../api/orders";
+import { useParams, useSearchParams } from "react-router-dom";
+import { getOrderById, updateOrderToPaid } from "../api/orders";
 import { initiateKhaltiPayment } from "../services/khaltiServices";
+
 
 // Replace this with your actual Alert component or use inline
 const Alert = ({ type, message }: { type: string; message: string }) => (
@@ -417,19 +418,19 @@ interface Order {
     city: string;
     postalCode: string;
     country: string;
-    fullName: string;
-    phone: string;
+    fullName?: string;
+    phone?: string;
   };
   paymentMethod: string;
-  itemsPrice: number;
-  taxPrice: number;
-  shippingPrice: number;
-  totalPrice: number;
+  taxAmount: number;
+  shippingAmount: number;
+  totalAmount: number;
   isPaid: boolean;
   paidAt?: Date;
   isDelivered: boolean;
   deliveredAt?: Date;
   createdAt: Date;
+  status?: string;
   user: {
     _id: string;
     name: string;
@@ -443,22 +444,28 @@ interface Order {
   };
 }
 
+
 const OrderDetail: React.FC = () => {
-  const { orderId } = useParams<{ orderId: string }>();
+  const { id } = useParams<{ id: string }>();
+  const [searchParams] = useSearchParams();
   const [order, setOrder] = useState<Order | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [paymentLoading, setPaymentLoading] = useState(false);
+  const [autoPayTriggered, setAutoPayTriggered] = useState(false);
 
-  const KHALTI_PUBLIC_KEY = import.meta.env.VITE_KHALTI_PUBLIC_KEY; // Replace with your actual key
+
+
+  const KHALTI_PUBLIC_KEY = import.meta.env.VITE_KHALTI_PUBLIC_KEY;
+
 
   useEffect(() => {
     const fetchOrder = async () => {
       try {
         setLoading(true);
-        if (!orderId) return;
+        if (!id) return;
 
-        const response = await getOrderById(orderId);
+        const response = await getOrderById(id);
 
         if (!response?.success) {
           throw new Error(response?.error || "Failed to fetch order");
@@ -474,10 +481,35 @@ const OrderDetail: React.FC = () => {
     };
 
     fetchOrder();
-  }, [orderId]);
+  }, [id]);
+
+  useEffect(() => {
+    const shouldAutoPay = searchParams.get("pay") === "1";
+    if (!shouldAutoPay || autoPayTriggered || !order || order.isPaid) return;
+
+    const tryAutoPay = () => {
+      if (!window.KhaltiCheckout) return false;
+      setAutoPayTriggered(true);
+      handlePayWithKhalti();
+      return true;
+    };
+
+    if (tryAutoPay()) return;
+
+    let attempts = 0;
+    const timer = window.setInterval(() => {
+      attempts += 1;
+      if (tryAutoPay() || attempts > 12) {
+        window.clearInterval(timer);
+      }
+    }, 250);
+
+    return () => window.clearInterval(timer);
+  }, [searchParams, autoPayTriggered, order]);
+
 
   const handlePayWithKhalti = () => {
-    if (!order) return;
+    if (!order || order.isPaid) return;
 
     setPaymentLoading(true);
 
@@ -486,20 +518,21 @@ const OrderDetail: React.FC = () => {
         publicKey: KHALTI_PUBLIC_KEY,
         productIdentity: order._id,
         productName: "Your Shop Order",
-        amount: order.totalPrice * 100, // Khalti expects amount in paisa
+        amount: order.totalAmount,
         orderId: order._id,
         customerInfo: {
-          name: order.shippingAddress.fullName,
+          name: order.shippingAddress.fullName || "Customer",
           phone: order.shippingAddress.phone,
         },
         onSuccess: (payload) => {
-          updateOrderStatus(order._id, {
+          updateOrderToPaid(order._id, {
             id: payload.token,
             status: "COMPLETED",
             update_time: new Date().toISOString(),
+            email_address: payload.email || payload.email_address,
           })
             .then((response) => {
-              if (response.success) {
+              if (response.success && response.data) {
                 setOrder(response.data);
               } else {
                 setError(response.error || "Failed to update payment status");
@@ -528,87 +561,193 @@ const OrderDetail: React.FC = () => {
     }
   };
 
+
   if (loading) return <div>Loading order...</div>;
   if (error) return <Alert type="error" message={error} />;
   if (!order) return <div>Order not found</div>;
 
+  const totalItems = order.orderItems.reduce(
+    (sum, item) => sum + (item.quantity || 0),
+    0
+  );
+
   return (
-    <div className="p-4 max-w-3xl mx-auto">
-      <h2 className="text-2xl font-bold mb-4">Order Details</h2>
+    <div className="min-h-screen bg-[radial-gradient(60%_60%_at_15%_10%,rgba(253,230,138,0.35),transparent),radial-gradient(50%_50%_at_85%_0%,rgba(251,191,36,0.2),transparent),linear-gradient(180deg,rgba(255,251,235,0.92),rgba(255,255,255,0.98))] py-12">
+      <div className="max-w-6xl mx-auto px-4">
+        <div className="rounded-[32px] border border-amber-100/70 bg-white/90 shadow-[0_30px_80px_-60px_rgba(120,53,15,0.6)]">
+          <div className="relative px-6 py-10">
+            <div className="absolute inset-0 bg-[linear-gradient(135deg,rgba(120,53,15,0.95),rgba(146,64,14,0.92),rgba(180,83,9,0.85))]" />
+            <div className="absolute inset-0 opacity-40 bg-[radial-gradient(circle_at_top,rgba(253,230,138,0.7),transparent_60%)]" />
+            <div className="relative flex flex-col gap-6 lg:flex-row lg:items-center lg:justify-between">
+              <div>
+                <p className="text-xs uppercase tracking-[0.4em] text-amber-100/70">
+                  Order Detail
+                </p>
+                <h2 className="mt-3 text-3xl font-semibold text-white">
+                  Order #{order._id.slice(-6).toUpperCase()}
+                </h2>
+                <p className="mt-3 text-amber-100">
+                  Placed on {new Date(order.createdAt).toLocaleDateString()}
+                </p>
+              </div>
+              <div className="flex flex-wrap gap-3">
+                <div className="rounded-2xl border border-amber-200/40 bg-amber-50/15 px-4 py-3">
+                  <p className="text-xs text-amber-100/70">Items</p>
+                  <p className="text-lg font-semibold text-white">{totalItems}</p>
+                </div>
+                <div className="rounded-2xl border border-amber-200/40 bg-amber-50/15 px-4 py-3">
+                  <p className="text-xs text-amber-100/70">Total</p>
+                  <p className="text-lg font-semibold text-white">
+                    ${order.totalAmount.toFixed(2)}
+                  </p>
+                </div>
+                <div className="rounded-2xl border border-amber-200/40 bg-amber-50/15 px-4 py-3">
+                  <p className="text-xs text-amber-100/70">Payment</p>
+                  <p className="text-lg font-semibold text-white">
+                    {order.isPaid ? "Paid" : "Pending"}
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
 
-      <div className="mb-4">
-        <strong>Order ID:</strong> {order._id}
+          <div className="px-6 pb-10 space-y-6">
+            <div className="grid gap-6 lg:grid-cols-[1.4fr_0.6fr]">
+              <div className="rounded-3xl border border-amber-100/60 bg-white p-6 shadow-sm profile-fade-up profile-fade-up-1">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-xs uppercase tracking-[0.3em] text-amber-600/70">
+                      Items
+                    </p>
+                    <h3 className="mt-2 text-xl font-semibold text-gray-900">
+                      Order Summary
+                    </h3>
+                  </div>
+                  {!order.isPaid && (
+                    <span className="inline-flex items-center rounded-full border border-amber-300 bg-amber-50 px-3 py-1 text-xs font-semibold text-amber-700">
+                      Payment due
+                    </span>
+                  )}
+                </div>
+
+                <div className="mt-6 space-y-4">
+                  {order.orderItems.map((item) => (
+                    <div
+                      key={item._id}
+                      className="flex flex-col gap-4 rounded-2xl border border-amber-100/60 bg-amber-50/40 p-4 sm:flex-row sm:items-center sm:justify-between"
+                    >
+                      <div className="flex items-center gap-4">
+                        <img
+                          src={item.image}
+                          alt={item.name}
+                          className="h-14 w-14 rounded-xl object-cover"
+                        />
+                        <div>
+                          <p className="text-sm font-semibold text-gray-900">
+                            {item.name}
+                          </p>
+                          <p className="text-xs text-gray-500">
+                            Qty {item.quantity} · ${item.price.toFixed(2)}
+                          </p>
+                        </div>
+                      </div>
+                      <p className="text-sm font-semibold text-gray-900">
+                        ${(item.price * item.quantity).toFixed(2)}
+                      </p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <div className="space-y-4">
+                <div className="rounded-3xl border border-amber-100/60 bg-white p-6 shadow-sm profile-fade-up profile-fade-up-2">
+                  <p className="text-xs uppercase tracking-[0.3em] text-gray-400">
+                    Shipping
+                  </p>
+                  <p className="mt-3 text-sm font-semibold text-gray-900">
+                    {order.shippingAddress.fullName || "Customer"}
+                  </p>
+                  <p className="mt-2 text-sm text-gray-600">
+                    {order.shippingAddress.address}, {order.shippingAddress.city}
+                  </p>
+                  <p className="text-sm text-gray-600">
+                    {order.shippingAddress.postalCode}, {order.shippingAddress.country}
+                  </p>
+                  <p className="mt-3 text-sm text-gray-600">
+                    Phone: {order.shippingAddress.phone || "—"}
+                  </p>
+                </div>
+
+                <div className="rounded-3xl border border-amber-100/60 bg-white p-6 shadow-sm profile-fade-up profile-fade-up-3">
+                  <p className="text-xs uppercase tracking-[0.3em] text-gray-400">
+                    Payment
+                  </p>
+                  <div className="mt-4 space-y-3 text-sm text-gray-700">
+                    <div className="flex items-center justify-between">
+                      <span>Method</span>
+                      <span className="font-semibold">{order.paymentMethod}</span>
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <span>Status</span>
+                      <span
+                        className={`font-semibold ${
+                          order.isPaid ? "text-emerald-600" : "text-rose-600"
+                        }`}
+                      >
+                        {order.isPaid
+                          ? `Paid ${new Date(order.paidAt!).toLocaleDateString()}`
+                          : "Not paid"}
+                      </span>
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <span>Delivery</span>
+                      <span
+                        className={`font-semibold ${
+                          order.isDelivered
+                            ? "text-emerald-600"
+                            : "text-rose-600"
+                        }`}
+                      >
+                        {order.isDelivered
+                          ? `Delivered ${new Date(order.deliveredAt!).toLocaleDateString()}`
+                          : "Not delivered"}
+                      </span>
+                    </div>
+                  </div>
+
+                  <div className="mt-6 border-t border-amber-100/60 pt-4 text-sm text-gray-700">
+                    <div className="flex items-center justify-between">
+                      <span>Tax</span>
+                      <span>${order.taxAmount.toFixed(2)}</span>
+                    </div>
+                    <div className="mt-2 flex items-center justify-between">
+                      <span>Shipping</span>
+                      <span>${order.shippingAmount.toFixed(2)}</span>
+                    </div>
+                    <div className="mt-3 flex items-center justify-between text-base font-semibold text-gray-900">
+                      <span>Total</span>
+                      <span>${order.totalAmount.toFixed(2)}</span>
+                    </div>
+                  </div>
+
+                  {!order.isPaid && (
+                    <button
+                      onClick={handlePayWithKhalti}
+                      disabled={paymentLoading}
+                      className="mt-6 w-full rounded-full bg-amber-700 px-4 py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-amber-800 disabled:opacity-60"
+                    >
+                      {paymentLoading ? "Processing..." : "Pay with Khalti"}
+                    </button>
+                  )}
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
-
-      <div className="mb-4">
-        <strong>Shipping Address:</strong>
-        <br />
-        {order.shippingAddress.fullName}
-        <br />
-        {order.shippingAddress.address}, {order.shippingAddress.city}
-        <br />
-        {order.shippingAddress.postalCode}, {order.shippingAddress.country}
-        <br />
-        Phone: {order.shippingAddress.phone}
-      </div>
-
-      <div className="mb-4">
-        <strong>Payment Method:</strong> {order.paymentMethod}
-      </div>
-
-      <div className="mb-4">
-        <strong>Payment Status:</strong>{" "}
-        {order.isPaid ? (
-          <span className="text-green-600">
-            Paid at {new Date(order.paidAt!).toLocaleString()}
-          </span>
-        ) : (
-          <span className="text-red-600">Not Paid</span>
-        )}
-      </div>
-
-      <div className="mb-4">
-        <strong>Delivery Status:</strong>{" "}
-        {order.isDelivered ? (
-          <span className="text-green-600">
-            Delivered at {new Date(order.deliveredAt!).toLocaleString()}
-          </span>
-        ) : (
-          <span className="text-red-600">Not Delivered</span>
-        )}
-      </div>
-
-      <div className="mb-4">
-        <strong>Items:</strong>
-        <ul className="list-disc ml-6 space-y-2">
-          {order.orderItems.map((item) => (
-            <li key={item._id}>
-              <img
-                src={item.image}
-                alt={item.name}
-                className="w-10 h-10 object-cover inline-block mr-2"
-              />
-              {item.name} - {item.quantity} x ${item.price.toFixed(2)}
-            </li>
-          ))}
-        </ul>
-      </div>
-
-      <div className="mb-4">
-        <strong>Total Price:</strong> ${order.totalPrice.toFixed(2)}
-      </div>
-
-      {!order.isPaid && (
-        <button
-          onClick={handlePayWithKhalti}
-          disabled={paymentLoading}
-          className="bg-purple-600 hover:bg-purple-700 text-white font-semibold px-4 py-2 rounded"
-        >
-          {paymentLoading ? "Processing..." : "Pay with Khalti"}
-        </button>
-      )}
     </div>
   );
+
 };
 
 export default OrderDetail;

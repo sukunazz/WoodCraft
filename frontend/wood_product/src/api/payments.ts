@@ -10,18 +10,12 @@ export const processPayment = async (paymentData: {
   orderId: string;
 }): Promise<{ status: string; id?: string }> => {
   try {
-    const token = localStorage.getItem("userToken");
-
-    if (!token) {
-      throw new Error("No authentication token found");
-    }
-
     const response = await fetch(`${API_URL}/payments/process`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        Authorization: `Bearer ${token}`,
       },
+      credentials: "include",
       body: JSON.stringify(paymentData),
     });
 
@@ -95,18 +89,12 @@ export const verifyKhaltiPayment = async (
   orderId: string
 ): Promise<ApiResponse> => {
   try {
-    const userToken = localStorage.getItem("userToken");
-
-    if (!userToken) {
-      return { success: false, error: "No authentication token found" };
-    }
-
     const response = await fetch(`${API_URL}/payments/khalti/verify`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        Authorization: `Bearer ${userToken}`,
       },
+      credentials: "include",
       body: JSON.stringify({ token, amount, orderId }),
     });
 

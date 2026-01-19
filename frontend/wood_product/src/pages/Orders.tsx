@@ -145,8 +145,9 @@ const OrderStatusBadge = ({ status }) => {
 
   return (
     <span
-      className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium ${style}`}
+      className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold ${style}`}
     >
+
       {icon}
       {text}
     </span>
@@ -158,6 +159,19 @@ const Orders = () => {
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+
+  const totalOrders = orders.length;
+  const totalSpent = orders.reduce(
+    (sum, order) => sum + (Number(order.totalAmount) || 0),
+    0
+  );
+  const latestOrderTimestamp = orders.length
+    ? Math.max(...orders.map((order) => new Date(order.createdAt).getTime()))
+    : null;
+  const latestOrderDate = latestOrderTimestamp
+    ? new Date(latestOrderTimestamp)
+    : null;
+
 
   useEffect(() => {
     const fetchOrders = async () => {
@@ -182,13 +196,13 @@ const Orders = () => {
 
   if (!user) {
     return (
-      <div className="min-h-screen bg-gray-50 py-12">
+      <div className="min-h-screen bg-[radial-gradient(60%_60%_at_15%_10%,rgba(253,230,138,0.35),transparent),radial-gradient(50%_50%_at_85%_0%,rgba(251,191,36,0.2),transparent),linear-gradient(180deg,rgba(255,251,235,0.92),rgba(255,255,255,0.98))] py-12">
         <div className="max-w-lg mx-auto px-4 text-center">
-          <div className="bg-white rounded-xl shadow-lg p-8 border border-gray-100">
-            <div className="inline-flex items-center justify-center w-16 h-16 bg-indigo-100 rounded-full mb-6">
+          <div className="rounded-[28px] border border-amber-100/70 bg-white/90 p-8 shadow-[0_30px_80px_-60px_rgba(120,53,15,0.6)] profile-fade-up">
+            <div className="inline-flex items-center justify-center h-16 w-16 rounded-2xl bg-amber-100 text-amber-700 mb-6">
               <svg
                 xmlns="http://www.w3.org/2000/svg"
-                className="h-8 w-8 text-indigo-600"
+                className="h-8 w-8"
                 fill="none"
                 viewBox="0 0 24 24"
                 stroke="currentColor"
@@ -201,7 +215,7 @@ const Orders = () => {
                 />
               </svg>
             </div>
-            <h2 className="text-2xl font-bold text-gray-900 mb-2">
+            <h2 className="text-2xl font-semibold text-gray-900 mb-2">
               Sign In Required
             </h2>
             <p className="text-gray-600 mb-8">
@@ -209,7 +223,7 @@ const Orders = () => {
             </p>
             <Link
               to="/login"
-              className="inline-flex items-center px-5 py-3 border border-transparent text-base font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-colors"
+              className="inline-flex items-center px-6 py-3 rounded-full text-sm font-semibold text-white bg-amber-700 hover:bg-amber-800 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-amber-600 transition-colors"
             >
               <svg
                 xmlns="http://www.w3.org/2000/svg"
@@ -233,15 +247,16 @@ const Orders = () => {
     );
   }
 
+
   if (error) {
     return (
-      <div className="min-h-screen bg-gray-50 py-12">
+      <div className="min-h-screen bg-[radial-gradient(60%_60%_at_15%_10%,rgba(253,230,138,0.35),transparent),radial-gradient(50%_50%_at_85%_0%,rgba(251,191,36,0.2),transparent),linear-gradient(180deg,rgba(255,251,235,0.92),rgba(255,255,255,0.98))] py-12">
         <div className="max-w-lg mx-auto px-4">
-          <div className="bg-red-50 border border-red-200 rounded-xl p-8 shadow-sm">
+          <div className="rounded-[28px] border border-amber-100/70 bg-white/90 p-8 shadow-[0_30px_80px_-60px_rgba(120,53,15,0.6)] profile-fade-up">
             <div className="flex items-center mb-4">
               <svg
                 xmlns="http://www.w3.org/2000/svg"
-                className="h-8 w-8 text-red-500 mr-3"
+                className="h-8 w-8 text-rose-500 mr-3"
                 fill="none"
                 viewBox="0 0 24 24"
                 stroke="currentColor"
@@ -253,15 +268,15 @@ const Orders = () => {
                   d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
                 />
               </svg>
-              <h2 className="text-2xl font-bold text-red-800">
+              <h2 className="text-2xl font-semibold text-gray-900">
                 Error Loading Orders
               </h2>
             </div>
-            <p className="text-red-700">{error}</p>
+            <p className="text-gray-600">{error}</p>
             <div className="mt-6">
               <button
                 onClick={() => window.location.reload()}
-                className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 transition-colors"
+                className="inline-flex items-center px-5 py-2 rounded-full text-sm font-semibold text-white bg-amber-700 hover:bg-amber-800 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-amber-600 transition-colors"
               >
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
@@ -286,117 +301,161 @@ const Orders = () => {
     );
   }
 
+
   return (
-    <div className="min-h-screen bg-gray-50 py-8">
-      <div className="max-w-5xl mx-auto px-4">
-        <div className="bg-gradient-to-r from-indigo-500 to-purple-600 rounded-xl shadow-lg p-8 mt-12 mb-8">
-          <h1 className="text-3xl font-bold text-white">Your Orders</h1>
-          <p className="text-indigo-100 mt-2">
-            Track and manage your purchase history
-          </p>
-        </div>
-
-        {orders.length === 0 ? (
-          <div className="bg-white rounded-xl shadow-lg p-8 text-center border border-gray-100">
-            <div className="inline-flex items-center justify-center w-20 h-20 bg-gray-100 rounded-full mb-6">
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                className="h-10 w-10 text-gray-500"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"
-                />
-              </svg>
+    <div className="min-h-screen bg-[radial-gradient(60%_60%_at_15%_10%,rgba(253,230,138,0.35),transparent),radial-gradient(50%_50%_at_85%_0%,rgba(251,191,36,0.2),transparent),linear-gradient(180deg,rgba(255,251,235,0.92),rgba(255,255,255,0.98))] py-12">
+      <div className="max-w-6xl mx-auto px-4">
+        <div className="rounded-[32px] border border-amber-100/70 bg-white/90 shadow-[0_30px_80px_-60px_rgba(120,53,15,0.6)] overflow-hidden">
+          <div className="relative px-6 py-10">
+            <div className="absolute inset-0 bg-[linear-gradient(135deg,rgba(120,53,15,0.95),rgba(146,64,14,0.92),rgba(180,83,9,0.85))]" />
+            <div className="absolute inset-0 opacity-40 bg-[radial-gradient(circle_at_top,rgba(253,230,138,0.7),transparent_60%)]" />
+            <div className="relative flex flex-col gap-6 lg:flex-row lg:items-center lg:justify-between">
+              <div>
+                <p className="text-xs uppercase tracking-[0.4em] text-amber-100/70">
+                  Order History
+                </p>
+                <h1 className="mt-3 text-3xl font-semibold text-white">Your Orders</h1>
+                <p className="mt-3 text-amber-100">
+                  Track purchases, manage deliveries, and revisit your favorites.
+                </p>
+              </div>
+              <div className="flex flex-wrap gap-3">
+                <div className="rounded-2xl border border-amber-200/40 bg-amber-50/15 px-4 py-3">
+                  <p className="text-xs text-amber-100/70">Total Orders</p>
+                  <p className="text-lg font-semibold text-white">{totalOrders}</p>
+                </div>
+                <div className="rounded-2xl border border-amber-200/40 bg-amber-50/15 px-4 py-3">
+                  <p className="text-xs text-amber-100/70">Total Spent</p>
+                  <p className="text-lg font-semibold text-white">
+                    {totalOrders > 0 ? formatPrice(totalSpent) : "—"}
+                  </p>
+                </div>
+                <div className="rounded-2xl border border-amber-200/40 bg-amber-50/15 px-4 py-3">
+                  <p className="text-xs text-amber-100/70">Latest Order</p>
+                  <p className="text-lg font-semibold text-white">
+                    {latestOrderDate
+                      ? latestOrderDate.toLocaleDateString()
+                      : "—"}
+                  </p>
+                </div>
+              </div>
             </div>
-            <h3 className="text-2xl font-bold text-gray-900 mb-2">
-              No Orders Found
-            </h3>
-            <p className="text-gray-500 mb-8 max-w-md mx-auto">
-              It looks like you haven't placed any orders yet. Start shopping to
-              see your purchase history here.
-            </p>
-            <Link
-              to="/shop"
-              className="inline-flex items-center px-6 py-3 border border-transparent text-base font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-colors"
-            >
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                className="h-5 w-5 mr-2"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"
-                />
-              </svg>
-              Browse Our Shop
-            </Link>
           </div>
-        ) : (
-          <div className="space-y-4">
-            {orders.map((order) => (
-              <Link
-                to={`/orders/${order._id}`}
-                key={order._id}
-                className="block bg-white rounded-xl shadow-sm hover:shadow-md transition-shadow duration-200 border border-gray-100 overflow-hidden"
-              >
-                <div className="p-6">
-                  <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between">
-                    <div className="flex items-center">
-                      <div className="bg-indigo-100 p-3 rounded-lg mr-4">
-                        <svg
-                          xmlns="http://www.w3.org/2000/svg"
-                          className="h-6 w-6 text-indigo-600"
-                          fill="none"
-                          viewBox="0 0 24 24"
-                          stroke="currentColor"
-                        >
-                          <path
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            strokeWidth={2}
-                            d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"
-                          />
-                        </svg>
-                      </div>
-                      <div>
-                        <p className="text-lg font-semibold text-indigo-600 mb-1">
-                          Order #{order._id.slice(-6).toUpperCase()}
-                        </p>
-                        <p className="text-sm text-gray-500">
-                          Placed on{" "}
-                          {new Date(order.createdAt).toLocaleDateString(
-                            "en-US",
-                            {
-                              year: "numeric",
-                              month: "long",
-                              day: "numeric",
-                            }
-                          )}
-                        </p>
-                      </div>
-                    </div>
-                    <div className="mt-4 sm:mt-0">
-                      <OrderStatusBadge status={order.status} />
-                    </div>
-                  </div>
 
-                  <div className="mt-6 flex flex-col sm:flex-row sm:justify-between sm:items-center pt-4 border-t border-gray-100">
-                    <div className="flex items-center">
-                      <div className="flex items-center mr-6">
+          <div className="px-6 pb-10">
+        {orders.length === 0 ? (
+          <div className="mt-8 rounded-3xl border border-amber-100/60 bg-white p-10 text-center shadow-sm profile-fade-up profile-fade-up-1">
+
+                <div className="inline-flex items-center justify-center h-20 w-20 rounded-3xl bg-amber-50 text-amber-700 mb-6">
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    className="h-10 w-10"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"
+                    />
+                  </svg>
+                </div>
+                <h3 className="text-2xl font-semibold text-gray-900 mb-2">
+                  No Orders Yet
+                </h3>
+                <p className="text-gray-600 mb-8 max-w-md mx-auto">
+                  Start shopping to build your order history. We'll keep everything
+                  organized here for you.
+                </p>
+                <Link
+                  to="/shop"
+                  className="inline-flex items-center px-6 py-3 rounded-full text-sm font-semibold text-white bg-amber-700 hover:bg-amber-800 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-amber-600 transition-colors"
+                >
+                  Browse Our Shop
+                </Link>
+              </div>
+        ) : (
+          <div className="mt-8 space-y-4">
+
+                {orders.map((order, index) => {
+                  const shouldPayNow = !order.isPaid && order.status === "Pending";
+                  const orderLink = shouldPayNow
+                    ? `/orders/${order._id}?pay=1`
+                    : `/orders/${order._id}`;
+
+                  return (
+                  <Link
+                    to={orderLink}
+                    key={order._id}
+                    className="block rounded-3xl border border-amber-100/70 bg-white/90 p-6 shadow-sm transition hover:-translate-y-0.5 hover:shadow-lg profile-fade-up"
+                    style={{ animationDelay: `${Math.min(index * 80, 320)}ms` }}
+                  >
+                    <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+                      <div className="flex items-center gap-4">
+                        <div className="h-12 w-12 rounded-2xl bg-amber-50 text-amber-700 flex items-center justify-center">
+                          <svg
+                            xmlns="http://www.w3.org/2000/svg"
+                            className="h-6 w-6"
+                            fill="none"
+                            viewBox="0 0 24 24"
+                            stroke="currentColor"
+                          >
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              strokeWidth={2}
+                              d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"
+                            />
+                          </svg>
+                        </div>
+                        <div>
+                          <p className="text-xs uppercase tracking-[0.3em] text-amber-600/70">
+                            Order
+                          </p>
+                          <p className="text-lg font-semibold text-gray-900">
+                            #{order._id.slice(-6).toUpperCase()}
+                          </p>
+                          <p className="text-sm text-gray-500">
+                            Placed on{" "}
+                            {new Date(order.createdAt).toLocaleDateString(
+                              "en-US",
+                              {
+                                year: "numeric",
+                                month: "long",
+                                day: "numeric",
+                              }
+                            )}
+                          </p>
+                        </div>
+                      </div>
+                      <div className="flex flex-wrap items-center gap-4">
+                        <OrderStatusBadge status={order.status} />
+                        {shouldPayNow && (
+                          <span className="inline-flex items-center rounded-full border border-amber-300 bg-amber-50 px-3 py-1 text-xs font-semibold text-amber-700">
+                            Pay now
+                          </span>
+                        )}
+                        <div className="text-right">
+                          <p className="text-xs text-gray-400">Total</p>
+                          <p className="text-lg font-semibold text-gray-900">
+                            {formatPrice(order.totalAmount)}
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="mt-5 flex flex-wrap items-center gap-4 border-t border-amber-100/60 pt-4 text-sm text-gray-600">
+                      {shouldPayNow && (
+                        <span className="inline-flex items-center rounded-full bg-amber-100 px-3 py-1 text-xs font-semibold text-amber-800">
+                          Complete payment
+                        </span>
+                      )}
+                      <div className="flex items-center gap-2">
                         <svg
                           xmlns="http://www.w3.org/2000/svg"
-                          className="h-5 w-5 text-gray-400 mr-2"
+                          className="h-4 w-4 text-amber-500"
                           fill="none"
                           viewBox="0 0 24 24"
                           stroke="currentColor"
@@ -408,66 +467,78 @@ const Orders = () => {
                             d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"
                           />
                         </svg>
-                        <span className="text-gray-600">
+                        <span>
                           {order.orderItems.length}{" "}
                           {order.orderItems.length === 1 ? "item" : "items"}
                         </span>
                       </div>
+                      <div className="flex items-center gap-2 text-amber-700 font-semibold">
+                        View order details
+                        <svg
+                          xmlns="http://www.w3.org/2000/svg"
+                          className="h-4 w-4"
+                          viewBox="0 0 20 20"
+                          fill="currentColor"
+                        >
+                          <path
+                            fillRule="evenodd"
+                            d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z"
+                            clipRule="evenodd"
+                          />
+                        </svg>
+                      </div>
                     </div>
-                    <div className="mt-4 sm:mt-0">
-                      <p className="font-bold text-lg text-gray-900">
-                        {formatPrice(order.totalAmount)}
-                      </p>
-                    </div>
-                  </div>
-                </div>
+                  </Link>
+                );
+              })}
+              </div>
+            )}
+
+            <div className="mt-10 flex flex-wrap items-center justify-between gap-4">
+              <Link
+                to="/profile"
+                className="inline-flex items-center text-amber-700 hover:text-amber-800 font-semibold"
+              >
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  className="h-5 w-5 mr-2"
+                  viewBox="0 0 20 20"
+                  fill="currentColor"
+                >
+                  <path
+                    fillRule="evenodd"
+                    d="M12.707 5.293a1 1 0 010 1.414L9.414 10l3.293 3.293a1 1 0 01-1.414 1.414l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 0z"
+                    clipRule="evenodd"
+                  />
+                </svg>
+                Back to Profile
               </Link>
-            ))}
+
+              <Link
+                to="/shop"
+                className="inline-flex items-center px-5 py-2 rounded-full border border-transparent text-sm font-semibold text-white bg-amber-700 hover:bg-amber-800 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-amber-600 transition-colors"
+              >
+                Continue Shopping
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  className="h-5 w-5 ml-2"
+                  viewBox="0 0 20 20"
+                  fill="currentColor"
+                >
+                  <path
+                    fillRule="evenodd"
+                    d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z"
+                    clipRule="evenodd"
+                  />
+                </svg>
+              </Link>
+            </div>
           </div>
-        )}
-
-        <div className="mt-8 flex justify-between items-center">
-          <Link
-            to="/profile"
-            className="inline-flex items-center text-indigo-600 hover:text-indigo-800 font-medium transition-colors"
-          >
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              className="h-5 w-5 mr-2"
-              viewBox="0 0 20 20"
-              fill="currentColor"
-            >
-              <path
-                fillRule="evenodd"
-                d="M12.707 5.293a1 1 0 010 1.414L9.414 10l3.293 3.293a1 1 0 01-1.414 1.414l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 0z"
-                clipRule="evenodd"
-              />
-            </svg>
-            Back to Profile
-          </Link>
-
-          <Link
-            to="/shop"
-            className="inline-flex items-center text-indigo-600 hover:text-indigo-800 font-medium transition-colors"
-          >
-            Continue Shopping
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              className="h-5 w-5 ml-2"
-              viewBox="0 0 20 20"
-              fill="currentColor"
-            >
-              <path
-                fillRule="evenodd"
-                d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z"
-                clipRule="evenodd"
-              />
-            </svg>
-          </Link>
         </div>
       </div>
     </div>
   );
+
 };
 
 export default Orders;

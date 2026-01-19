@@ -6,16 +6,8 @@ const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000/api";
 // Get user cart
 export const getCart = async (): Promise<ApiResponse<CartItem[]>> => {
   try {
-    const token = getTokenFromLocalStorage();
-
-    if (!token) {
-      return { success: false, error: "No authentication token found" };
-    }
-
     const response = await fetch(`${API_URL}/cart`, {
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
+      credentials: "include",
     });
 
     const data = await response.json();
@@ -36,18 +28,12 @@ export const addToCart = async (
   quantity: number
 ): Promise<ApiResponse<CartItem[]>> => {
   try {
-    const token = getTokenFromLocalStorage();
-
-    if (!token) {
-      return { success: false, error: "No authentication token found" };
-    }
-
     const response = await fetch(`${API_URL}/cart`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        Authorization: `Bearer ${token}`,
       },
+      credentials: "include",
       body: JSON.stringify({ productId, quantity }),
     });
 
@@ -70,20 +56,14 @@ export const updateCartItem = async (
   quantity: number
 ): Promise<ApiResponse<CartItem[]>> => {
   try {
-    const token = getTokenFromLocalStorage();
-
-    if (!token) {
-      return { success: false, error: "No authentication token found" };
-    }
-
     console.log("Sending update request:", { productId, quantity });
 
     const response = await fetch(`${API_URL}/cart`, {
       method: "PUT",
       headers: {
         "Content-Type": "application/json",
-        Authorization: `Bearer ${token}`,
       },
+      credentials: "include",
       body: JSON.stringify({ productId, quantity }),
     });
 
@@ -110,17 +90,9 @@ export const removeFromCart = async (
   productId: string
 ): Promise<ApiResponse<CartItem[]>> => {
   try {
-    const token = getTokenFromLocalStorage();
-
-    if (!token) {
-      return { success: false, error: "No authentication token found" };
-    }
-
     const response = await fetch(`${API_URL}/cart/${productId}`, {
       method: "DELETE",
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
+      credentials: "include",
     });
 
     const data = await response.json();
@@ -141,17 +113,9 @@ export const removeFromCart = async (
 // Clear cart
 export const clearCart = async (): Promise<ApiResponse<null>> => {
   try {
-    const token = getTokenFromLocalStorage();
-
-    if (!token) {
-      return { success: false, error: "No authentication token found" };
-    }
-
     const response = await fetch(`${API_URL}/cart`, {
       method: "DELETE",
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
+      credentials: "include",
     });
 
     const data = await response.json();
