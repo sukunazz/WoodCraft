@@ -60,28 +60,48 @@
 // utils/email.js
 // This is a suggested implementation since your original email.js was not provided
 
-import nodemailer from "nodemailer";
+import { Resend } from "resend";
+
+const getResendConfig = () => {
+  const apiKey = process.env.RESEND_API_KEY;
+  const from =
+    process.env.RESEND_FROM || process.env.MAIL_FROM || process.env.EMAIL_FROM;
+
+  if (!apiKey) {
+    throw new Error("RESEND_API_KEY is not configured");
+  }
+
+  if (!from) {
+    throw new Error("RESEND_FROM, MAIL_FROM, or EMAIL_FROM is not configured");
+  }
+
+  return { apiKey, from };
+};
+
+const sendResendEmail = async ({ to, subject, html }) => {
+  const { apiKey, from } = getResendConfig();
+  const resend = new Resend(apiKey);
+
+  const { data, error } = await resend.emails.send({
+    from,
+    to,
+    subject,
+    html,
+  });
+
+  if (error) {
+    throw error;
+  }
+
+  return data;
+};
 
 export const sendVerificationEmail = async (email, token, name) => {
   try {
-    // Get the base URL from environment variables
     const baseUrl = process.env.FRONTEND_URL || "http://localhost:5173";
-
-    // Create verification URL
     const verificationUrl = `${baseUrl}/verify-account/${token}`;
 
-    // Create transporter (configure with your email service)
-    const transporter = nodemailer.createTransport({
-      service: "gmail",
-      auth: {
-        user: process.env.EMAIL_USERNAME,
-        pass: process.env.EMAIL_PASSWORD,
-      },
-    });
-
-    // Email content
-    const mailOptions = {
-      from: process.env.EMAIL_FROM || "youremail@example.com",
+    return await sendResendEmail({
       to: email,
       subject: "Verify Your Email Address",
       html: `
@@ -99,13 +119,39 @@ export const sendVerificationEmail = async (email, token, name) => {
           <p>This link will expire in 24 hours.</p>
         </div>
       `,
-    };
-
-    // Send email
-    const info = await transporter.sendMail(mailOptions);
-    return info;
+    });
   } catch (error) {
-    console.error("Email sending failed:", error);
+    console.error("Email sending failed:", error?.response?.data || error);
     throw new Error("Failed to send verification email");
   }
 };
+
+export const sendPasswordResetEmail = async (email, token, name) => {
+  try {
+    const baseUrl = process.env.FRONTEND_URL || "http://localhost:5173";
+    const resetUrl = `${baseUrl}/reset-password/${token}`;
+
+    return await sendResendEmail({
+      to: email,
+      subject: "Reset your password",
+      html: `
+        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+          <h2>Password Reset</h2>
+          <p>Hello ${name},</p>
+          <p>You requested a password reset. Click the button below to set a new password:</p>
+          <div style="margin: 20px 0;">
+            <a href="${resetUrl}" style="background-color: #4F46E5; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px;">
+              Reset Password
+            </a>
+          </div>
+          <p>If you did not request this, you can safely ignore this email.</p>
+          <p>This link will expire in 1 hour.</p>
+        </div>
+      `,
+    });
+  } catch (error) {
+    console.error("Password reset email failed:", error?.response?.data || error);
+    throw new Error("Failed to send password reset email");
+  }
+};
+

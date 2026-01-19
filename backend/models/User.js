@@ -16,9 +16,23 @@ const userSchema = new mongoose.Schema(
     verificationTokenExpires: Date,
     resetPasswordToken: String,
     resetPasswordExpires: Date,
+    avatarUrl: { type: String },
+    loginActivity: [
+      {
+        timestamp: { type: Date, default: Date.now },
+        ip: { type: String },
+        userAgent: { type: String },
+        status: {
+          type: String,
+          enum: ["success", "failed"],
+          default: "success",
+        },
+      },
+    ],
   },
   { timestamps: true }
 );
+
 
 // Hash password before saving
 userSchema.pre("save", async function (next) {
@@ -52,6 +66,21 @@ userSchema.methods.generateVerificationToken = function () {
   return verificationToken;
 };
 
+// Generate password reset token
+userSchema.methods.generatePasswordResetToken = function () {
+  const resetToken = crypto.randomBytes(20).toString("hex");
+
+  this.resetPasswordToken = crypto
+    .createHash("sha256")
+    .update(resetToken)
+    .digest("hex");
+
+  this.resetPasswordExpires = Date.now() + 60 * 60 * 1000; // 1 hour
+
+  return resetToken;
+};
+
 const User = mongoose.model("User", userSchema);
+
 
 export default User;
