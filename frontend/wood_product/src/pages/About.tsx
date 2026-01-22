@@ -2,7 +2,7 @@ import React from "react";
 
 const About: React.FC = () => {
   return (
-    <div className="mt-20 bg-gradient-to-b from-amber-50 via-white to-slate-50">
+    <div className="mt-20 bg-white">
       <div className="container mx-auto px-4 py-12">
         <div className="max-w-5xl mx-auto">
           <div className="text-center mb-10">
