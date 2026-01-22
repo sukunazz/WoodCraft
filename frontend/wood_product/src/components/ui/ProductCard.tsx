@@ -63,10 +63,11 @@
 
 // export default ProductCard;
 import React, { useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import { Product } from "../../types";
 import { formatPrice } from "../../utils/formatPrice";
 import { addToCart } from "../../api/cart";
+import { useAuth } from "../../hooks/useAuth";
 
 interface ProductCardProps {
   product: Product;
@@ -81,6 +82,9 @@ const ProductCard: React.FC<ProductCardProps> = ({
   onAddToCartSuccess,
   loading = false,
 }) => {
+  const { isAuthenticated } = useAuth();
+  const navigate = useNavigate();
+  const location = useLocation();
   const [isAdding, setIsAdding] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [addedToCart, setAddedToCart] = useState(false);
@@ -88,6 +92,10 @@ const ProductCard: React.FC<ProductCardProps> = ({
   const handleAddToCart = async (e: React.MouseEvent) => {
     e.preventDefault();
     if (!product || !product._id || isAdding || loading || addedToCart) return;
+    if (!isAuthenticated) {
+      navigate("/login", { state: { from: location.pathname } });
+      return;
+    }
 
     try {
       setIsAdding(true);

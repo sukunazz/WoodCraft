@@ -1,9 +1,11 @@
 import { useState } from "react";
+import { useLocation, useNavigate } from "react-router-dom";
 import { useCart } from "../../hooks/useCart";
 import { formatPrice } from "../../utils/formatPrice";
 import { Product } from "../../types";
 import Button from "../ui/Button";
 import Alert from "../ui/Alert";
+import { useAuth } from "../../hooks/useAuth";
 
 interface ProductDetailsProps {
   product: Product;
@@ -11,10 +13,17 @@ interface ProductDetailsProps {
 
 const ProductDetails: React.FC<ProductDetailsProps> = ({ product }) => {
   const [showAlert, setShowAlert] = useState(false);
+  const { isAuthenticated } = useAuth();
   const { addToCart } = useCart();
+  const navigate = useNavigate();
+  const location = useLocation();
 
   const handleAddToCart = (e: React.MouseEvent<HTMLButtonElement>) => {
     e.preventDefault(); // Prevent page reload
+    if (!isAuthenticated) {
+      navigate("/login", { state: { from: location.pathname } });
+      return;
+    }
     addToCart(product, 1); // Always add 1 item to cart
     setShowAlert(true);
     setTimeout(() => setShowAlert(false), 3000);

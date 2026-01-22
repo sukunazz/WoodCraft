@@ -1,15 +1,16 @@
 import React, { useState, useEffect } from "react";
-import { useSearchParams } from "react-router-dom";
+import { useLocation, useNavigate, useSearchParams } from "react-router-dom";
 import ProductCard from "../components/ui/ProductCard";
-import Loading from "../components/ui/Loading";
 import { Product } from "../types";
 import { Filter, Search } from "lucide-react";
 import { getProducts } from "../api/products";
 import { useCart } from "../hooks/useCart";
+import { useAuth } from "../hooks/useAuth";
 
 const Shop: React.FC = () => {
   const [searchParams, setSearchParams] = useSearchParams();
-  const [products, setProducts] = useState<Product[]>([]);
+  const navigate = useNavigate();
+  const location = useLocation();
   const [filteredProducts, setFilteredProducts] = useState<Product[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -30,6 +31,7 @@ const Shop: React.FC = () => {
 
   // Using the cart hook
   const { addToCart, loading: cartLoading } = useCart();
+  const { isAuthenticated } = useAuth();
 
   // Available categories
   const categories = [
@@ -117,7 +119,6 @@ const Shop: React.FC = () => {
           product.price >= priceRange.min && product.price <= priceRange.max
       );
 
-      setProducts(allProducts);
       setFilteredProducts(productsWithinPriceRange);
       setTotalPages(response.data.pages);
     } catch (err) {
@@ -133,6 +134,10 @@ const Shop: React.FC = () => {
 
   // Handle adding product to cart
   const handleAddToCart = (product: Product) => {
+    if (!isAuthenticated) {
+      navigate("/login", { state: { from: location.pathname + location.search } });
+      return;
+    }
     addToCart(product, 1); // Add quantity 1 of the product
   };
 
