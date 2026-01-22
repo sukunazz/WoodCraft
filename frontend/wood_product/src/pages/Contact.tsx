@@ -65,136 +65,151 @@ const Contact: React.FC = () => {
   };
 
   return (
-    <div className="container mx-auto px-4 py-8 mt-20">
-      <div className="max-w-6xl mx-auto">
-        <h1 className="text-4xl font-bold mb-6 text-center">Contact Us</h1>
-        <p className="text-gray-600 text-center mb-12 max-w-2xl mx-auto">
-          Have questions, feedback, or need assistance? We're here to help!
-          Choose the method that works best for you, and our team will be happy
-          to assist.
-        </p>
-
-        <div className="grid md:grid-cols-3 gap-8 mb-12">
-          <div className="bg-white p-6 rounded-lg shadow-lg flex flex-col items-center text-center">
-            <div className="bg-blue-100 p-4 rounded-full mb-4">
-              <Phone className="h-8 w-8 text-blue-600" />
-            </div>
-            <h3 className="font-bold text-xl mb-2">Call Us</h3>
-            <p className="text-gray-700 mb-2">Mon-Fri: 9AM - 6PM</p>
-            <p className="text-blue-600 font-medium">(555) 123-4567</p>
-          </div>
-
-          <div className="bg-white p-6 rounded-lg shadow-lg flex flex-col items-center text-center">
-            <div className="bg-blue-100 p-4 rounded-full mb-4">
-              <Mail className="h-8 w-8 text-blue-600" />
-            </div>
-            <h3 className="font-bold text-xl mb-2">Email Us</h3>
-            <p className="text-gray-700 mb-2">24/7 Support</p>
-            <p className="text-blue-600 font-medium">support@yourstore.com</p>
-          </div>
-
-          <div className="bg-white p-6 rounded-lg shadow-lg flex flex-col items-center text-center">
-            <div className="bg-blue-100 p-4 rounded-full mb-4">
-              <MapPin className="h-8 w-8 text-blue-600" />
-            </div>
-            <h3 className="font-bold text-xl mb-2">Visit Us</h3>
-            <p className="text-gray-700 mb-2">Corporate Headquarters</p>
-            <p className="text-blue-600 font-medium">
-              123 Commerce St, Suite 500
-              <br />
-              San Francisco, CA 94103
+    <div className="mt-20 bg-gradient-to-b from-slate-50 via-white to-amber-50">
+      <div className="container mx-auto px-4 py-12">
+        <div className="max-w-6xl mx-auto">
+          <div className="text-center mb-12">
+            <p className="text-sm font-semibold uppercase tracking-[0.25em] text-amber-700">
+              We are here to help
+            </p>
+            <h1 className="text-4xl md:text-5xl font-semibold text-slate-900 mt-3">
+              Contact Us
+            </h1>
+            <p className="text-slate-600 mt-4 max-w-2xl mx-auto">
+              Have questions, feedback, or need assistance? Choose the method
+              that works best for you and our team will respond quickly.
             </p>
           </div>
-        </div>
 
-        <div className="bg-white rounded-lg shadow-lg overflow-hidden mb-12">
-          <div className="grid md:grid-cols-5">
-            <div className="md:col-span-2 bg-blue-600 text-white p-8">
-              <h2 className="text-2xl font-bold mb-6">Get in Touch</h2>
-              <p className="mb-6">
-                We value your feedback and are committed to providing you with
-                the best possible service. Fill out the form, and one of our
-                representatives will get back to you as soon as possible.
+          <div className="grid md:grid-cols-3 gap-6 mb-12">
+            <div className="bg-white/90 backdrop-blur p-6 rounded-2xl shadow-lg shadow-slate-200/40 ring-1 ring-slate-200/70 flex flex-col items-center text-center">
+              <div className="bg-amber-100 p-4 rounded-full mb-4">
+                <Phone className="h-7 w-7 text-amber-700" />
+              </div>
+              <h3 className="font-semibold text-lg text-slate-900 mb-2">
+                Call Us
+              </h3>
+              <p className="text-slate-600 mb-2">Mon-Fri: 9AM - 6PM</p>
+              <p className="text-amber-700 font-medium">(555) 123-4567</p>
+            </div>
+
+            <div className="bg-white/90 backdrop-blur p-6 rounded-2xl shadow-lg shadow-slate-200/40 ring-1 ring-slate-200/70 flex flex-col items-center text-center">
+              <div className="bg-amber-100 p-4 rounded-full mb-4">
+                <Mail className="h-7 w-7 text-amber-700" />
+              </div>
+              <h3 className="font-semibold text-lg text-slate-900 mb-2">
+                Email Us
+              </h3>
+              <p className="text-slate-600 mb-2">24/7 Support</p>
+              <p className="text-amber-700 font-medium">support@yourstore.com</p>
+            </div>
+
+            <div className="bg-white/90 backdrop-blur p-6 rounded-2xl shadow-lg shadow-slate-200/40 ring-1 ring-slate-200/70 flex flex-col items-center text-center">
+              <div className="bg-amber-100 p-4 rounded-full mb-4">
+                <MapPin className="h-7 w-7 text-amber-700" />
+              </div>
+              <h3 className="font-semibold text-lg text-slate-900 mb-2">
+                Visit Us
+              </h3>
+              <p className="text-slate-600 mb-2">Corporate Headquarters</p>
+              <p className="text-amber-700 font-medium">
+                123 Commerce St, Suite 500
+                <br />
+                San Francisco, CA 94103
               </p>
+            </div>
+          </div>
 
-              <div className="space-y-4">
-                <div className="flex items-start space-x-3">
-                  <Clock className="h-5 w-5 mt-0.5" />
-                  <div>
-                    <h4 className="font-semibold">Business Hours</h4>
-                    <p className="text-sm text-blue-100">
-                      Monday - Friday: 9AM - 6PM
-                      <br />
-                      Saturday: 10AM - 4PM
-                      <br />
-                      Sunday: Closed
-                    </p>
+          <div className="bg-white rounded-3xl shadow-xl shadow-slate-200/40 overflow-hidden mb-12 ring-1 ring-slate-200/70">
+            <div className="grid md:grid-cols-5">
+              <div className="md:col-span-2 bg-gradient-to-br from-slate-900 via-slate-800 to-amber-900 text-white p-8">
+                <h2 className="text-2xl font-semibold mb-4">Get in Touch</h2>
+                <p className="text-white/80 mb-6">
+                  We value your feedback and are committed to thoughtful,
+                  personal support. Fill out the form and we will get back to
+                  you shortly.
+                </p>
+
+                <div className="space-y-4">
+                  <div className="flex items-start gap-3">
+                    <Clock className="h-5 w-5 mt-0.5 text-amber-200" />
+                    <div>
+                      <h4 className="font-semibold">Business Hours</h4>
+                      <p className="text-sm text-amber-100/80">
+                        Monday - Friday: 9AM - 6PM
+                        <br />
+                        Saturday: 10AM - 4PM
+                        <br />
+                        Sunday: Closed
+                      </p>
+                    </div>
                   </div>
-                </div>
 
-                <div className="flex items-start space-x-3">
-                  <MapPin className="h-5 w-5 mt-0.5" />
-                  <div>
-                    <h4 className="font-semibold">Store Locations</h4>
-                    <p className="text-sm text-blue-100">
-                      San Francisco, CA
-                      <br />
-                      New York, NY
-                      <br />
-                      Austin, TX
-                    </p>
+                  <div className="flex items-start gap-3">
+                    <MapPin className="h-5 w-5 mt-0.5 text-amber-200" />
+                    <div>
+                      <h4 className="font-semibold">Store Locations</h4>
+                      <p className="text-sm text-amber-100/80">
+                        San Francisco, CA
+                        <br />
+                        New York, NY
+                        <br />
+                        Austin, TX
+                      </p>
+                    </div>
                   </div>
-                </div>
 
-                <div className="flex items-start space-x-3">
-                  <Phone className="h-5 w-5 mt-0.5" />
-                  <div>
-                    <h4 className="font-semibold">Phone Support</h4>
-                    <p className="text-sm text-blue-100">
-                      Customer Service: (555) 123-4567
-                      <br />
-                      Technical Support: (555) 765-4321
-                    </p>
+                  <div className="flex items-start gap-3">
+                    <Phone className="h-5 w-5 mt-0.5 text-amber-200" />
+                    <div>
+                      <h4 className="font-semibold">Phone Support</h4>
+                      <p className="text-sm text-amber-100/80">
+                        Customer Service: (555) 123-4567
+                        <br />
+                        Technical Support: (555) 765-4321
+                      </p>
+                    </div>
                   </div>
                 </div>
               </div>
-            </div>
 
-            <div className="md:col-span-3 p-8">
-              {submitted ? (
-                <div className="flex flex-col items-center justify-center h-full text-center">
-                  <div className="bg-green-100 rounded-full p-4 mb-4">
-                    <Send className="h-10 w-10 text-green-600" />
-                  </div>
-                  <h3 className="text-2xl font-bold text-green-600 mb-2">
-                    Message Sent!
-                  </h3>
-                  <p className="text-gray-700 mb-6">
-                    Thank you for reaching out. We've received your message and
-                    will get back to you shortly.
-                  </p>
-                  <button
-                    onClick={() => setSubmitted(false)}
-                    className="bg-blue-600 text-white px-6 py-2 rounded-md hover:bg-blue-700"
-                  >
-                    Send Another Message
-                  </button>
-                </div>
-              ) : (
-                <form onSubmit={handleSubmit}>
-                  <h3 className="text-2xl font-bold mb-6">Send Us a Message</h3>
-
-                  {error && (
-                    <div className="mb-4 p-3 bg-red-100 text-red-700 rounded-md">
-                      {error}
+              <div className="md:col-span-3 p-8">
+                {submitted ? (
+                  <div className="flex flex-col items-center justify-center h-full text-center">
+                    <div className="bg-emerald-100 rounded-full p-4 mb-4">
+                      <Send className="h-10 w-10 text-emerald-600" />
                     </div>
-                  )}
+                    <h3 className="text-2xl font-semibold text-emerald-600 mb-2">
+                      Message Sent!
+                    </h3>
+                    <p className="text-slate-600 mb-6">
+                      Thank you for reaching out. We've received your message and
+                      will get back to you shortly.
+                    </p>
+                    <button
+                      onClick={() => setSubmitted(false)}
+                      className="bg-amber-600 text-white px-6 py-2 rounded-full hover:bg-amber-700"
+                    >
+                      Send Another Message
+                    </button>
+                  </div>
+                ) : (
+                  <form onSubmit={handleSubmit}>
+                    <h3 className="text-2xl font-semibold mb-6 text-slate-900">
+                      Send Us a Message
+                    </h3>
+
+                    {error && (
+                      <div className="mb-4 p-3 bg-red-100 text-red-700 rounded-xl">
+                        {error}
+                      </div>
+                    )}
 
                   <div className="grid md:grid-cols-2 gap-4 mb-4">
                     <div>
                       <label
                         htmlFor="name"
-                        className="block text-gray-700 mb-1"
+                        className="block text-slate-700 mb-1"
                       >
                         Full Name
                       </label>
@@ -205,14 +220,14 @@ const Contact: React.FC = () => {
                         value={formData.name}
                         onChange={handleChange}
                         required
-                        className="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        className="w-full p-3 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-amber-500"
                         placeholder="John Doe"
                       />
                     </div>
                     <div>
                       <label
                         htmlFor="email"
-                        className="block text-gray-700 mb-1"
+                        className="block text-slate-700 mb-1"
                       >
                         Email Address
                       </label>
@@ -223,7 +238,7 @@ const Contact: React.FC = () => {
                         value={formData.email}
                         onChange={handleChange}
                         required
-                        className="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        className="w-full p-3 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-amber-500"
                         placeholder="john@example.com"
                       />
                     </div>
@@ -232,7 +247,7 @@ const Contact: React.FC = () => {
                   <div className="mb-4">
                     <label
                       htmlFor="subject"
-                      className="block text-gray-700 mb-1"
+                      className="block text-slate-700 mb-1"
                     >
                       Subject
                     </label>
@@ -243,7 +258,7 @@ const Contact: React.FC = () => {
                       value={formData.subject}
                       onChange={handleChange}
                       required
-                      className="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      className="w-full p-3 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-amber-500"
                       placeholder="How can we help you?"
                     />
                   </div>
@@ -251,7 +266,7 @@ const Contact: React.FC = () => {
                   <div className="mb-6">
                     <label
                       htmlFor="message"
-                      className="block text-gray-700 mb-1"
+                      className="block text-slate-700 mb-1"
                     >
                       Message
                     </label>
@@ -262,7 +277,7 @@ const Contact: React.FC = () => {
                       onChange={handleChange}
                       required
                       rows={5}
-                      className="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      className="w-full p-3 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-amber-500"
                       placeholder="Tell us more about your inquiry..."
                     ></textarea>
                   </div>
@@ -270,8 +285,8 @@ const Contact: React.FC = () => {
                   <button
                     type="submit"
                     disabled={loading}
-                    className={`w-full py-3 px-4 rounded-md text-white font-medium flex items-center justify-center ${
-                      loading ? "bg-blue-400" : "bg-blue-600 hover:bg-blue-700"
+                    className={`w-full py-3 px-4 rounded-full text-white font-medium flex items-center justify-center ${
+                      loading ? "bg-amber-400" : "bg-amber-600 hover:bg-amber-700"
                     }`}
                   >
                     {loading ? (
@@ -309,14 +324,14 @@ const Contact: React.FC = () => {
         </div>
 
         {/* Using public image placeholder instead of Google Maps to avoid errors */}
-        <div className="bg-white rounded-lg shadow-lg overflow-hidden">
+        <div className="bg-white rounded-3xl shadow-xl shadow-slate-200/40 overflow-hidden ring-1 ring-slate-200/70">
           <div className="h-96">
-            <div className="w-full h-full flex items-center justify-center bg-gray-100">
+            <div className="w-full h-full flex items-center justify-center bg-slate-100">
               <div className="text-center p-8">
-                <h3 className="text-lg font-medium text-gray-700 mb-2">
+                <h3 className="text-lg font-semibold text-slate-700 mb-2">
                   Map Location
                 </h3>
-                <p className="text-gray-600">
+                <p className="text-slate-600">
                   123 Commerce St, Suite 500
                   <br />
                   San Francisco, CA 94103
@@ -327,6 +342,7 @@ const Contact: React.FC = () => {
         </div>
       </div>
     </div>
+  </div>
   );
 };
 
