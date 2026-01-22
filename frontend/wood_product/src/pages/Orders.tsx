@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { useAuth } from "../hooks/useAuth";
 import { getUserOrders } from "../api/orders";
@@ -6,9 +6,13 @@ import { formatPrice } from "../utils/formatPrice";
 import Loading from "../components/ui/Loading";
 import { Order } from "../types";
 
-const OrderStatusBadge = ({ status }) => {
+type OrderStatusBadgeProps = {
+  status: string;
+};
+
+const OrderStatusBadge: React.FC<OrderStatusBadgeProps> = ({ status }) => {
   // Map API status values to styling and display text
-  const getStatusInfo = (apiStatus) => {
+  const getStatusInfo = (apiStatus: string) => {
     const statusMap = {
       Pending: {
         style: "bg-amber-100 text-amber-800 border border-amber-300",
@@ -118,7 +122,9 @@ const OrderStatusBadge = ({ status }) => {
 
     // Default in case status is not one of the expected values
     return (
-      statusMap[normalizedStatus] || {
+      (statusMap as Record<string, typeof statusMap.Pending>)[
+        normalizedStatus
+      ] || {
         style: "bg-gray-100 text-gray-800 border border-gray-300",
         text: apiStatus,
         icon: (
@@ -156,9 +162,9 @@ const OrderStatusBadge = ({ status }) => {
 
 const Orders = () => {
   const { user } = useAuth();
-  const [orders, setOrders] = useState([]);
+  const [orders, setOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
+  const [error, setError] = useState<string | null>(null);
 
   const totalOrders = orders.length;
   const totalSpent = orders.reduce(
@@ -166,7 +172,11 @@ const Orders = () => {
     0
   );
   const latestOrderTimestamp = orders.length
-    ? Math.max(...orders.map((order) => new Date(order.createdAt).getTime()))
+    ? Math.max(
+        ...orders.map((order) =>
+          order.createdAt ? new Date(order.createdAt).getTime() : 0
+        )
+      )
     : null;
   const latestOrderDate = latestOrderTimestamp
     ? new Date(latestOrderTimestamp)
@@ -181,7 +191,9 @@ const Orders = () => {
         setOrders(fetchedOrders);
       } catch (err) {
         console.error("Error fetching orders:", err);
-        setError(err.message || "Failed to load orders");
+        const errorMessage =
+          err instanceof Error ? err.message : "Failed to load orders";
+        setError(errorMessage);
       } finally {
         setLoading(false);
       }
@@ -419,7 +431,9 @@ const Orders = () => {
                           </p>
                           <p className="text-sm text-gray-500">
                             Placed on{" "}
-                            {new Date(order.createdAt).toLocaleDateString(
+                            {new Date(
+                              order.createdAt || Date.now()
+                            ).toLocaleDateString(
                               "en-US",
                               {
                                 year: "numeric",
@@ -431,7 +445,7 @@ const Orders = () => {
                         </div>
                       </div>
                       <div className="flex flex-wrap items-center gap-4">
-                        <OrderStatusBadge status={order.status} />
+                        <OrderStatusBadge status={order.status || "Pending"} />
                         {shouldPayNow && (
                           <span className="inline-flex items-center rounded-full border border-amber-300 bg-amber-50 px-3 py-1 text-xs font-semibold text-amber-700">
                             Pay now
@@ -440,7 +454,9 @@ const Orders = () => {
                         <div className="text-right">
                           <p className="text-xs text-gray-400">Total</p>
                           <p className="text-lg font-semibold text-gray-900">
-                            {formatPrice(order.totalAmount)}
+                            {formatPrice(
+                              order.totalAmount ?? order.totalPrice ?? 0
+                            )}
                           </p>
                         </div>
                       </div>

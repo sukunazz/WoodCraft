@@ -1,20 +1,33 @@
 // User related types
 export interface User {
   _id: string;
+  id?: string;
   name: string;
+  firstName?: string;
+  lastName?: string;
   email: string;
+  phone?: string;
   isVerified: boolean;
   isAdmin: boolean;
   avatarUrl?: string;
   shippingAddress?: ShippingAddress;
+  createdAt?: string;
+  updatedAt?: string;
 }
 
 
 export interface ShippingAddress {
-  address: string;
-  city: string;
-  postalCode: string;
-  country: string;
+  _id?: string;
+  id?: string;
+  address?: string;
+  street?: string;
+  city?: string;
+  state?: string;
+  postalCode?: string;
+  zipCode?: string;
+  country?: string;
+  fullName?: string;
+  phone?: string;
 }
 
 export interface AuthResponse {
@@ -34,24 +47,38 @@ export interface LoginActivityEntry {
 }
 
 // Product related types
+export interface ProductDimensions {
+  length?: number;
+  width?: number;
+  height?: number;
+  unit?: string;
+}
+
 export interface Product {
   _id: string;
+  id?: string;
   name: string;
   image?: string;
   images?: string[];
+  imageUrl?: string;
   description: string;
   category: string;
   price: number;
   countInStock?: number;
   inStock?: number;
+  stock?: number;
   rating?: number;
+  ratings?: Review[];
+  averageRating?: number;
   numReviews?: number;
   material?: string;
-  dimensions?: string;
-  weight?: string;
+  dimensions?: string | ProductDimensions;
+  weight?: string | number;
   finishOptions?: string[];
   features?: string[];
-  createdAt: string;
+  featured?: boolean;
+  createdAt?: string;
+  updatedAt?: string;
   reviews?: Review[];
   freeShipping?: boolean;
   salePrice?: number;
@@ -59,6 +86,7 @@ export interface Product {
 
 export interface Review {
   _id?: string;
+  id?: string;
   name?: string;
   userName?: string;
   title?: string;
@@ -71,6 +99,8 @@ export interface Review {
 
 // Cart related types
 export interface CartItem {
+  id?: string;
+  productId?: string;
   product: Product;
   quantity: number;
 }
@@ -78,19 +108,30 @@ export interface CartItem {
 // Order related types
 export interface Order {
   _id: string;
-  user: string;
+  orderNumber?: string;
+  user?: User | { _id?: string; name?: string; email?: string; phone?: string };
   orderItems: OrderItem[];
-  shippingAddress: ShippingAddress;
-  paymentMethod: string;
-  taxAmount: number;
-  shippingAmount: number;
-  totalAmount: number;
+  shippingAddress?: ShippingAddress;
+  paymentMethod?: string;
+  paymentResult?: PaymentResult;
+  taxAmount?: number;
+  taxPrice?: number;
+  shippingAmount?: number;
+  shippingPrice?: number;
+  itemsPrice?: number;
+  totalAmount?: number;
+  totalPrice?: number;
   isPaid: boolean;
+  paidAt?: string;
   isDelivered: boolean;
-  status: string;
-  createdAt: string;
-  updatedAt: string;
-  __v: number;
+  deliveredAt?: string;
+  status?: string;
+  customerEmail?: string;
+  customerPhone?: string;
+  createdAt?: string;
+  updatedAt?: string;
+  __v?: number;
+  notes?: string;
 }
 
 export interface OrderItem {
@@ -100,6 +141,7 @@ export interface OrderItem {
   price: number;
   image: string;
   _id: string;
+  variant?: string;
 }
 
 export interface PaymentResult {
@@ -112,22 +154,42 @@ export interface PaymentResult {
 export type OrderStatus = "Processing" | "Shipped" | "Delivered" | "Cancelled";
 
 // API Response types
-export interface ApiResponse<T> {
-  success: boolean;
-  data?: T;
-  error?: string;
-}
+export type ApiResponse<T> =
+  | {
+      success: true;
+      data?: T;
+      message?: string;
+    }
+  | {
+      success: false;
+      error: string;
+      message?: string;
+      data?: T;
+      keepExistingItems?: boolean;
+    };
 
-export interface PaginatedResponse<T> {
-  success: boolean;
-  data: {
-    items: T[];
-    page: number;
-    pages: number;
-    total: number;
-  };
-  message?: string;
-}
+export type PaginatedResponse<T> =
+  | {
+      success: true;
+      data: {
+        items: T[];
+        page: number;
+        pages: number;
+        total: number;
+      };
+      message?: string;
+    }
+  | {
+      success: false;
+      error: string;
+      message?: string;
+      data?: {
+        items: T[];
+        page: number;
+        pages: number;
+        total: number;
+      };
+    };
 
 // Form data types
 export interface LoginFormData {
@@ -153,11 +215,16 @@ export interface ProductFormData {
   description: string;
   countInStock?: number;
   inStock?: number;
+  stock?: number;
+  rating?: number;
+  featured?: boolean;
   material?: string;
-  dimensions?: string;
-  weight?: string;
+  dimensions?: string | ProductDimensions;
+  weight?: string | number;
   finishOptions?: string[];
   features?: string[];
+  freeShipping?: boolean;
+  salePrice?: number;
 }
 
 export interface ReviewFormData {

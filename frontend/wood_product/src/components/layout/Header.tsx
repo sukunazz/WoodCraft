@@ -5,7 +5,11 @@ import { useCart } from "../../hooks/useCart";
 import { clearTokenFromLocalStorage } from "../../utils/localStorage";
 
 
-const Header: React.FC = () => {
+interface HeaderProps {
+  showNavigation?: boolean;
+}
+
+const Header: React.FC<HeaderProps> = ({ showNavigation = true }) => {
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isProfileMenuOpen, setIsProfileMenuOpen] = useState(false);
@@ -20,7 +24,6 @@ const Header: React.FC = () => {
   // Fix: Add null check for useCart
   const cart = useCart();
   const totalItems = cart?.totalItems || 0;
-  const clearCart = cart?.clearCart || (() => {});
 
   const navigate = useNavigate();
 
@@ -74,35 +77,38 @@ const Header: React.FC = () => {
           </Link>
 
           {/* Desktop Navigation */}
-          <nav className="hidden md:flex items-center space-x-6">
-            <Link
-              to="/"
-              className="text-gray-700 hover:text-amber-700 font-medium"
-            >
-              Home
-            </Link>
-            <Link
-              to="/shop"
-              className="text-gray-700 hover:text-amber-700 font-medium"
-            >
-              Shop
-            </Link>
-            <Link
-              to="/about"
-              className="text-gray-700 hover:text-amber-700 font-medium"
-            >
-              About
-            </Link>
-            <Link
-              to="/contact"
-              className="text-gray-700 hover:text-amber-700 font-medium"
-            >
-              Contact
-            </Link>
-          </nav>
+          {showNavigation && (
+            <nav className="hidden md:flex items-center space-x-6">
+              <Link
+                to="/"
+                className="text-gray-700 hover:text-amber-700 font-medium"
+              >
+                Home
+              </Link>
+              <Link
+                to="/shop"
+                className="text-gray-700 hover:text-amber-700 font-medium"
+              >
+                Shop
+              </Link>
+              <Link
+                to="/about"
+                className="text-gray-700 hover:text-amber-700 font-medium"
+              >
+                About
+              </Link>
+              <Link
+                to="/contact"
+                className="text-gray-700 hover:text-amber-700 font-medium"
+              >
+                Contact
+              </Link>
+            </nav>
+          )}
 
           {/* Desktop Right Section */}
-          <div className="hidden md:flex items-center space-x-6">
+          {showNavigation && (
+            <div className="hidden md:flex items-center space-x-6">
             {/* Search Form */}
             <form onSubmit={handleSearch} className="relative">
               <input
@@ -232,10 +238,12 @@ const Header: React.FC = () => {
                 Sign In
               </Link>
             )}
-          </div>
+            </div>
+          )}
 
           {/* Mobile Menu Button */}
-          <div className="flex items-center md:hidden">
+          {showNavigation && (
+            <div className="flex items-center md:hidden">
             {/* Cart - Only show when authenticated */}
             {isAuthenticated && (
               <Link to="/cart" className="mr-4 relative">
@@ -296,12 +304,13 @@ const Header: React.FC = () => {
                 </svg>
               )}
             </button>
-          </div>
+            </div>
+          )}
         </div>
       </div>
 
       {/* Mobile Menu */}
-      {isMobileMenuOpen && (
+      {showNavigation && isMobileMenuOpen && (
         <div className="md:hidden bg-white border-t mt-2 py-4">
           <div className="container mx-auto px-4 space-y-3">
             <form onSubmit={handleSearch} className="relative mb-4">

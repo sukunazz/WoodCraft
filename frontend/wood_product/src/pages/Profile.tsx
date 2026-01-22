@@ -15,6 +15,10 @@ import {
   getPasswordStrength,
   isPasswordAllowed,
 } from "../utils/passwordStrength";
+import { ApiResponse } from "../types";
+
+const getErrorMessage = <T,>(response: ApiResponse<T>, fallback: string) =>
+  response.success ? fallback : response.error || fallback;
 
 
 interface UserProfile {
@@ -26,8 +30,8 @@ interface UserProfile {
   avatarUrl?: string;
   isAdmin: boolean;
   isVerified: boolean;
-  createdAt: string;
-  updatedAt: string;
+  createdAt?: string;
+  updatedAt?: string;
 }
 
 
@@ -79,7 +83,7 @@ const Profile: React.FC = () => {
           setFormData(profileData);
         } else {
           setError(
-            response.error || "Failed to load profile. Please try again."
+            getErrorMessage(response, "Failed to load profile. Please try again.")
           );
         }
       } catch (err) {
@@ -107,7 +111,10 @@ const Profile: React.FC = () => {
           setActivity(response.data.activity);
         } else {
           setActivityError(
-            response.error || "Failed to load recent login activity."
+            getErrorMessage(
+              response,
+              "Failed to load recent login activity."
+            )
           );
         }
       } catch (err) {
@@ -156,7 +163,7 @@ const Profile: React.FC = () => {
         setEditing(false);
       } else {
         setError(
-          response.error || "Failed to update profile. Please try again."
+          getErrorMessage(response, "Failed to update profile. Please try again.")
         );
       }
     } catch (err) {
@@ -245,15 +252,16 @@ const Profile: React.FC = () => {
 
     try {
       const response = await uploadAvatar(file);
-      if (!response.success || !response.data) {
-        setAvatarError(response.error || "Failed to upload profile photo");
+      const avatarUrl = response.success ? response.data?.avatarUrl : undefined;
+      if (!avatarUrl) {
+        setAvatarError(
+          getErrorMessage(response, "Failed to upload profile photo")
+        );
         return;
       }
 
-      updateAvatar(response.data.avatarUrl);
-      setProfile((prev) =>
-        prev ? { ...prev, avatarUrl: response.data.avatarUrl } : prev
-      );
+      updateAvatar(avatarUrl);
+      setProfile((prev) => (prev ? { ...prev, avatarUrl } : prev));
     } catch (err) {
       setAvatarError("Failed to upload profile photo. Please try again.");
     } finally {

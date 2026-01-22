@@ -2,9 +2,15 @@ import React from "react";
 
 interface ButtonProps {
   children: React.ReactNode;
-  onClick?: () => void;
+  onClick?: React.MouseEventHandler<HTMLButtonElement>;
   type?: "button" | "submit" | "reset";
-  variant?: "primary" | "secondary" | "outline" | "danger" | "success";
+  variant?:
+    | "primary"
+    | "secondary"
+    | "outline"
+    | "danger"
+    | "success"
+    | "link";
   size?: "sm" | "md" | "lg";
   fullWidth?: boolean;
   disabled?: boolean;
@@ -31,6 +37,7 @@ const Button: React.FC<ButtonProps> = ({
       "bg-transparent border border-amber-700 text-amber-700 hover:bg-amber-50",
     danger: "bg-red-600 hover:bg-red-700 text-white",
     success: "bg-green-600 hover:bg-green-700 text-white",
+    link: "bg-transparent text-amber-700 hover:text-amber-800 underline",
   };
 
   const sizeStyles = {

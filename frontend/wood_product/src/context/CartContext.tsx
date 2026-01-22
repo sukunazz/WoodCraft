@@ -238,7 +238,7 @@ interface CartContextType {
   items: CartItem[];
   loading: boolean;
   error: string | null;
-  itemErrors: Record<string, string>;
+  itemErrors: Record<string, string | null>;
   addToCart: (product: Product, quantity?: number) => void;
   removeFromCart: (productId: string) => void;
   updateQuantity: (productId: string, quantity: number) => void;
@@ -270,7 +270,22 @@ export const CartProvider: React.FC<CartProviderProps> = ({ children }) => {
   const [items, setItems] = useState<CartItem[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [itemErrors, setItemErrors] = useState<Record<string, string>>({});
+  const [itemErrors, setItemErrors] = useState<Record<string, string | null>>(
+    {}
+  );
+
+  const extractItems = (payload: unknown): CartItem[] => {
+    if (Array.isArray(payload)) {
+      return payload;
+    }
+
+    if (payload && typeof payload === "object" && "items" in payload) {
+      const items = (payload as { items?: CartItem[] }).items;
+      return Array.isArray(items) ? items : [];
+    }
+
+    return [];
+  };
 
   // Load from local storage on mount
   useEffect(() => {
@@ -290,7 +305,7 @@ export const CartProvider: React.FC<CartProviderProps> = ({ children }) => {
     try {
       const response = await api.addToCart(product._id, quantity);
       if (response.success) {
-        setItems(response.data.items || []);
+        setItems(extractItems(response.data));
       } else {
         setError(response.error);
       }
@@ -306,7 +321,7 @@ export const CartProvider: React.FC<CartProviderProps> = ({ children }) => {
     try {
       const response = await api.removeFromCart(productId);
       if (response.success) {
-        setItems(response.data.items || []);
+        setItems(extractItems(response.data));
       } else {
         setError(response.error);
       }
@@ -325,7 +340,7 @@ export const CartProvider: React.FC<CartProviderProps> = ({ children }) => {
       const result = await api.updateCartItem(productId, quantity);
 
       if (result.success) {
-        setItems(result.data.items || []);
+        setItems(extractItems(result.data));
       } else {
         if (result.keepExistingItems) {
           setItemErrors((prev) => ({ ...prev, [productId]: result.error }));
@@ -377,15 +392,19 @@ export const CartProvider: React.FC<CartProviderProps> = ({ children }) => {
 
       const cart = response.data;
 
-      // Check that data.items exists and is an array
-      if (!cart || !Array.isArray(cart.items)) {
+      const cartItems = extractItems(cart);
+      if (
+        cart &&
+        !Array.isArray(cart) &&
+        !(typeof cart === "object" && "items" in cart)
+      ) {
         console.error("Unexpected server response format:", cart);
         setError("Invalid server response format");
         setLoading(false);
         return;
       }
 
-      const serverCartItems: CartItem[] = cart.items.map((item: any) => ({
+      const serverCartItems: CartItem[] = cartItems.map((item: any) => ({
         product: {
           ...item.product,
           id: item.product._id,

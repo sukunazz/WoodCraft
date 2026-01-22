@@ -26,9 +26,7 @@ export const useCart = () => {
     try {
       // Check if user is authenticated
       if (!user) {
-        if (typeof auth.login === "function") {
-          auth.login(); // Show login modal or redirect to login
-        }
+        setError("Please log in to add items to your cart.");
         return;
       }
 
@@ -56,6 +54,7 @@ export const useCart = () => {
     items: context.items,
     totalAmount: context.subtotal, // Add totalAmount as an alias for subtotal
     clearCart: context.clearCart,
+    addToCart,
     loading,
     error,
   };

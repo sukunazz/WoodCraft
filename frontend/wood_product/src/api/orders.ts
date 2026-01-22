@@ -239,7 +239,7 @@
 // };
 
 // orders.ts - Keep your existing API functions but fix the getUserOrders implementation
-import { ApiResponse, Order, ShippingAddress } from "../types";
+import { ApiResponse, Order } from "../types";
 
 const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000/api";
 

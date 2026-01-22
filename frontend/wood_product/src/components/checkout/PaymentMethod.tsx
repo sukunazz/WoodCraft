@@ -181,6 +181,7 @@ interface PaymentMethodProps {
   setPaymentMethod: (method: "creditCard" | "khalti") => void;
   onSubmit: () => void;
   onBack: () => void;
+  isLoading?: boolean;
 }
 
 const PaymentMethod: React.FC<PaymentMethodProps> = ({
@@ -188,6 +189,7 @@ const PaymentMethod: React.FC<PaymentMethodProps> = ({
   setPaymentMethod,
   onSubmit,
   onBack,
+  isLoading = false,
 }) => {
   return (
     <div className="space-y-6">
@@ -335,9 +337,10 @@ const PaymentMethod: React.FC<PaymentMethodProps> = ({
         </button>
         <button
           onClick={onSubmit}
+          disabled={isLoading}
           className="bg-blue-600 text-white px-6 py-2 rounded-md hover:bg-blue-700"
         >
-          Continue to Review
+          {isLoading ? "Processing..." : "Continue to Review"}
         </button>
       </div>
     </div>

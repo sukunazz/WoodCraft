@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { Product, Review } from "../../types";
+import { Product } from "../../types";
 import Button from "../ui/Button";
 import { useAuth } from "../../hooks/useAuth";
 import {
@@ -26,9 +26,10 @@ const ProductReviews: React.FC<ProductReviewsProps> = ({
   const [comment, setComment] = useState("");
   const [title, setTitle] = useState("");
   const [loading, setLoading] = useState(false);
-  const [alert, setAlert] = useState<{ type: string; message: string } | null>(
-    null
-  );
+  const [alert, setAlert] = useState<{
+    type: "success" | "error" | "warning" | "info";
+    message: string;
+  } | null>(null);
   const [isEditing, setIsEditing] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [currentProduct, setCurrentProduct] = useState<Product>(product);
@@ -202,7 +203,7 @@ const ProductReviews: React.FC<ProductReviewsProps> = ({
   };
 
   // Format date for display
-  const formatDate = (dateString: string) => {
+  const formatDate = (dateString?: string) => {
     if (!dateString || dateString === "Unknown date") return null;
 
     const options: Intl.DateTimeFormatOptions = {

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { getUserOrders } from "../../api/orders";
 import { getLowStockProducts } from "../../api/products";
@@ -8,10 +8,11 @@ import {
   FaExclamationTriangle,
   FaDollarSign,
 } from "react-icons/fa";
+import { Order, Product } from "../../types";
 
 const Dashboard = () => {
-  const [lowStockProducts, setLowStockProducts] = useState([]);
-  const [recentOrders, setRecentOrders] = useState([]);
+  const [lowStockProducts, setLowStockProducts] = useState<Product[]>([]);
+  const [recentOrders, setRecentOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [stats, setStats] = useState({
@@ -30,6 +31,8 @@ const Dashboard = () => {
         const lowStockResponse = await getLowStockProducts();
         if (lowStockResponse.success && lowStockResponse.data) {
           setLowStockProducts(lowStockResponse.data);
+        } else {
+          setLowStockProducts([]);
         }
 
         // Fetch recent orders
@@ -39,7 +42,10 @@ const Dashboard = () => {
         // Calculate stats
         const totalRevenue = orders.reduce(
           (sum, order) =>
-            sum + (order.isPaid && order.totalAmount ? order.totalPrice : 0),
+            sum +
+            (order.isPaid
+              ? order.totalAmount ?? order.totalPrice ?? 0
+              : 0),
           0
         );
 
@@ -47,9 +53,10 @@ const Dashboard = () => {
           totalOrders: orders.length,
           pendingOrders: orders.filter((order) => !order.isDelivered).length,
           totalRevenue,
-          lowStockCount: lowStockResponse.success
-            ? lowStockResponse.data.length
-            : 0,
+          lowStockCount:
+            lowStockResponse.success && lowStockResponse.data
+              ? lowStockResponse.data.length
+              : 0,
         });
 
         setLoading(false);
@@ -154,12 +161,14 @@ const Dashboard = () => {
                         Order #{order._id.substring(0, 8)}
                       </p>
                       <p className="text-sm text-gray-500">
-                        {new Date(order.createdAt).toLocaleDateString()}
+                        {order.createdAt
+                          ? new Date(order.createdAt).toLocaleDateString()
+                          : "Date unavailable"}
                       </p>
                     </div>
                     <div className="flex items-center">
                       <span className="text-gray-800 font-medium">
-                        ${order.totalAmount.toFixed(2)}
+                        ${(order.totalAmount ?? order.totalPrice ?? 0).toFixed(2)}
                       </span>
                       <span
                         className={`ml-4 px-2 py-1 text-xs rounded-full ${
@@ -205,7 +214,11 @@ const Dashboard = () => {
                   >
                     <div className="flex items-center">
                       <img
-                        src={product.images}
+                        src={
+                          product.image ||
+                          product.images?.[0] ||
+                          "/assets/images/product-placeholder.jpg"
+                        }
                         alt={product.name}
                         className="w-10 h-10 object-cover rounded mr-3"
                       />
@@ -216,7 +229,7 @@ const Dashboard = () => {
                     <div className="flex items-center">
                       <span
                         className={`px-2 py-1 text-xs rounded-full ${
-                          product.inStock === 0
+                          (product.inStock ?? product.countInStock ?? 0) === 0
                             ? "bg-red-100 text-red-800"
                             : "bg-yellow-100 text-yellow-800"
                         }`}

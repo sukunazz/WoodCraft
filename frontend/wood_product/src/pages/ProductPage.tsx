@@ -6,7 +6,6 @@ import Loading from "../components/ui/Loading";
 import ProductDetails from "../components/product/ProductDetails";
 import ProductReviews from "../components/product/ProductReviews";
 import RelatedProducts from "../components/product/RelatedProducts";
-import Alert from "../components/ui/Alert";
 
 const ProductPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -24,7 +23,10 @@ const ProductPage: React.FC = () => {
         const response = await getProductById(id);
 
         if (!response.success || !response.data) {
-          throw new Error(response.error || "Failed to load product details");
+          const errorMessage = response.success
+            ? "Failed to load product details"
+            : response.error;
+          throw new Error(errorMessage || "Failed to load product details");
         }
 
         setProduct(response.data);

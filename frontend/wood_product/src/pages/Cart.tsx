@@ -7,8 +7,7 @@ import CartSummary from "../components/cart/CartSummary";
 import Button from "../components/ui/Button";
 
 const Cart: React.FC = () => {
-  const { items, totalItems, subtotal, loading, error, syncWithServer } =
-    useCart();
+  const { items, totalItems, loading, error, syncWithServer } = useCart();
   const { user } = useAuth();
 
   // Sync with server when component mounts and user is authenticated

@@ -1,20 +1,19 @@
-import React, { useState, useEffect } from "react";
+import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { getUserOrders, updateOrderStatus } from "../../api/orders";
 import {
   FaSearch,
   FaEye,
   FaTruck,
-  FaCheckCircle,
-  FaTimesCircle,
   FaFilter,
 } from "react-icons/fa";
+import { Order } from "../../types";
 
 const Orders = () => {
-  const [orders, setOrders] = useState([]);
-  const [filteredOrders, setFilteredOrders] = useState([]);
+  const [orders, setOrders] = useState<Order[]>([]);
+  const [filteredOrders, setFilteredOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
+  const [error, setError] = useState<string | null>(null);
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
   const [dateFilter, setDateFilter] = useState("all");
@@ -35,7 +34,8 @@ const Orders = () => {
       // Sort by date, newest first
       const sortedOrders = ordersData.sort(
         (a, b) =>
-          new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+          new Date(b.createdAt || 0).getTime() -
+          new Date(a.createdAt || 0).getTime()
       );
       setOrders(sortedOrders);
       setFilteredOrders(sortedOrders);
@@ -56,9 +56,8 @@ const Orders = () => {
       result = result.filter(
         (order) =>
           order._id.toLowerCase().includes(term) ||
-          (order.user &&
-            order.user.name &&
-            order.user.name.toLowerCase().includes(term)) ||
+          (typeof order.user === "object" &&
+            order.user?.name?.toLowerCase().includes(term)) ||
           (order.shippingAddress &&
             ((order.shippingAddress.address &&
               order.shippingAddress.address.toLowerCase().includes(term)) ||
@@ -96,16 +95,18 @@ const Orders = () => {
 
       switch (dateFilter) {
         case "today":
-          result = result.filter((order) => new Date(order.createdAt) >= today);
+          result = result.filter(
+            (order) => new Date(order.createdAt || 0) >= today
+          );
           break;
         case "7days":
           result = result.filter(
-            (order) => new Date(order.createdAt) >= sevenDaysAgo
+            (order) => new Date(order.createdAt || 0) >= sevenDaysAgo
           );
           break;
         case "30days":
           result = result.filter(
-            (order) => new Date(order.createdAt) >= thirtyDaysAgo
+            (order) => new Date(order.createdAt || 0) >= thirtyDaysAgo
           );
           break;
       }
@@ -114,14 +115,14 @@ const Orders = () => {
     setFilteredOrders(result);
   };
 
-  const handleUpdateStatus = async (orderId, newStatus) => {
+  const handleUpdateStatus = async (orderId: string, newStatus: string) => {
     try {
       setUpdateLoading(orderId);
       const response = await updateOrderStatus(orderId, newStatus);
 
       if (response.success) {
         // Update the local orders array with the updated order
-        const updatedOrders = orders.map((order) =>
+        const updatedOrders = orders.map((order: Order) =>
           order._id === orderId
             ? {
                 ...order,
@@ -136,7 +137,10 @@ const Orders = () => {
         );
         setOrders(updatedOrders);
       } else {
-        setError(response.error || "Failed to update order status");
+        const errorMessage = response.success
+          ? "Failed to update order status"
+          : response.error;
+        setError(errorMessage || "Failed to update order status");
       }
     } catch (err) {
       setError("Error updating order status");
@@ -146,7 +150,7 @@ const Orders = () => {
     }
   };
 
-  const getStatusBadge = (order) => {
+  const getStatusBadge = (order: Order) => {
     if (!order.isPaid) {
       return (
         <span className="px-2 py-1 text-xs rounded-full bg-red-100 text-red-800">
@@ -272,7 +276,9 @@ const Orders = () => {
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div className="text-sm text-gray-900">
-                        {order.user ? order.user.name : "Guest User"}
+                        {typeof order.user === "object" && order.user?.name
+                          ? order.user.name
+                          : "Guest User"}
                       </div>
                       {order.shippingAddress && (
                         <div className="text-xs text-gray-500">
@@ -283,18 +289,22 @@ const Orders = () => {
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div className="text-sm text-gray-900">
-                        {new Date(order.createdAt).toLocaleDateString()}
+                        {new Date(
+                          order.createdAt || Date.now()
+                        ).toLocaleDateString()}
                       </div>
                       <div className="text-xs text-gray-500">
-                        {new Date(order.createdAt).toLocaleTimeString()}
+                        {new Date(
+                          order.createdAt || Date.now()
+                        ).toLocaleTimeString()}
                       </div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div className="text-sm font-medium text-gray-900">
-                        ${order.totalAmount.toFixed(2)}
+                        ${(order.totalAmount ?? order.totalPrice ?? 0).toFixed(2)}
                       </div>
                       <div className="text-xs text-gray-500">
-                        {order.paymentMethod}
+                        {order.paymentMethod || "—"}
                       </div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">

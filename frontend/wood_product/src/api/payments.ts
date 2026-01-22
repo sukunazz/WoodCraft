@@ -87,7 +87,7 @@ export const verifyKhaltiPayment = async (
   token: string,
   amount: number,
   orderId: string
-): Promise<ApiResponse> => {
+): Promise<ApiResponse<unknown>> => {
   try {
     const response = await fetch(`${API_URL}/payments/khalti/verify`, {
       method: "POST",

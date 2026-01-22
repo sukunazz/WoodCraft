@@ -1,9 +1,10 @@
-import React, { useState, useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useParams, useNavigate, Link } from "react-router-dom";
 import { FaSave, FaArrowLeft, FaImage, FaTrash } from "react-icons/fa";
 
 // Import API functions
 import { getProductById, updateProduct } from "../../api/products";
+import { ProductDimensions } from "../../types";
 
 // Define interface for component props and URL params
 interface RouteParams {
@@ -20,13 +21,27 @@ const EditProduct: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<boolean>(false);
 
-  const [product, setProduct] = useState({
+  type ProductFormState = {
+    name: string;
+    price: number;
+    description: string;
+    category: string;
+    material: string;
+    dimensions: ProductDimensions;
+    weight: number;
+    images: string[];
+    countInStock: number;
+    inStock: number;
+    featured: boolean;
+  };
+
+  const [product, setProduct] = useState<ProductFormState>({
     name: "",
     price: 0,
     description: "",
     category: "",
     material: "",
-    dimensions: { length: 0, width: 0, height: 0 },
+    dimensions: { length: 0, width: 0, height: 0, unit: "cm" },
     weight: 0,
     images: [] as string[],
     countInStock: 0,
@@ -51,16 +66,34 @@ const EditProduct: React.FC = () => {
         if (response.success && response.data) {
           // Handle potential different field names
           const productData = response.data;
+          const normalizedDimensions =
+            typeof productData.dimensions === "object" &&
+            productData.dimensions !== null
+              ? {
+                  length: productData.dimensions.length ?? 0,
+                  width: productData.dimensions.width ?? 0,
+                  height: productData.dimensions.height ?? 0,
+                  unit: productData.dimensions.unit ?? "cm",
+                }
+              : { length: 0, width: 0, height: 0, unit: "cm" };
+
           setProduct({
-            ...productData,
+            name: productData.name || "",
+            price: productData.price ?? 0,
+            description: productData.description || "",
+            category: productData.category || "",
+            material: productData.material || "",
+            dimensions: normalizedDimensions,
+            weight:
+              typeof productData.weight === "number"
+                ? productData.weight
+                : Number(productData.weight) || 0,
+            images:
+              productData.images ||
+              (productData.image ? [productData.image] : []),
             countInStock: productData.countInStock || productData.inStock || 0,
             inStock: productData.inStock || productData.countInStock || 0,
-            dimensions: productData.dimensions || {
-              length: 0,
-              width: 0,
-              height: 0,
-            },
-            images: productData.images || [],
+            featured: Boolean(productData.featured),
           });
 
           // Set first image as preview if available
@@ -70,7 +103,10 @@ const EditProduct: React.FC = () => {
             setImagePreview(productData.image);
           }
         } else {
-          setError(response.error || "Failed to load product");
+          const errorMessage = response.success
+            ? "Failed to load product"
+            : response.error;
+          setError(errorMessage || "Failed to load product");
         }
       } catch (err) {
         setError("An error occurred while fetching the product");
@@ -94,13 +130,15 @@ const EditProduct: React.FC = () => {
     if (name.includes(".")) {
       // Handle nested fields like dimensions.length
       const [parent, child] = name.split(".");
-      setProduct((prev) => ({
-        ...prev,
-        [parent]: {
-          ...prev[parent as keyof typeof prev],
-          [child]: type === "number" ? parseFloat(value) : value,
-        },
-      }));
+      if (parent === "dimensions") {
+        setProduct((prev) => ({
+          ...prev,
+          dimensions: {
+            ...prev.dimensions,
+            [child]: type === "number" ? parseFloat(value) : value,
+          },
+        }));
+      }
     } else {
       setProduct((prev) => ({
         ...prev,
@@ -173,7 +211,10 @@ const EditProduct: React.FC = () => {
           navigate("/admin/products");
         }, 1500);
       } else {
-        setError(response.error || "Failed to update product");
+        const errorMessage = response.success
+          ? "Failed to update product"
+          : response.error;
+        setError(errorMessage || "Failed to update product");
       }
     } catch (err) {
       setError("An error occurred while updating the product");

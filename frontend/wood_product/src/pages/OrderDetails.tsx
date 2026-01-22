@@ -387,6 +387,7 @@ import React, { useEffect, useState } from "react";
 import { useParams, useSearchParams } from "react-router-dom";
 import { getOrderById, updateOrderToPaid } from "../api/orders";
 import { initiateKhaltiPayment } from "../services/khaltiServices";
+import { Order } from "../types";
 
 
 // Replace this with your actual Alert component or use inline
@@ -401,48 +402,6 @@ const Alert = ({ type, message }: { type: string; message: string }) => (
     {message}
   </div>
 );
-
-interface OrderItem {
-  _id: string;
-  name: string;
-  image: string;
-  price: number;
-  quantity: number;
-}
-
-interface Order {
-  _id: string;
-  orderItems: OrderItem[];
-  shippingAddress: {
-    address: string;
-    city: string;
-    postalCode: string;
-    country: string;
-    fullName?: string;
-    phone?: string;
-  };
-  paymentMethod: string;
-  taxAmount: number;
-  shippingAmount: number;
-  totalAmount: number;
-  isPaid: boolean;
-  paidAt?: Date;
-  isDelivered: boolean;
-  deliveredAt?: Date;
-  createdAt: Date;
-  status?: string;
-  user: {
-    _id: string;
-    name: string;
-    email: string;
-  };
-  paymentResult?: {
-    id: string;
-    status: string;
-    update_time: string;
-    email_address?: string;
-  };
-}
 
 
 const OrderDetail: React.FC = () => {
@@ -467,8 +426,11 @@ const OrderDetail: React.FC = () => {
 
         const response = await getOrderById(id);
 
-        if (!response?.success) {
-          throw new Error(response?.error || "Failed to fetch order");
+        if (!response?.success || !response.data) {
+          const errorMessage = response?.success
+            ? "Failed to fetch order"
+            : response?.error || "Failed to fetch order";
+          throw new Error(errorMessage);
         }
 
         setOrder(response.data);
@@ -518,11 +480,11 @@ const OrderDetail: React.FC = () => {
         publicKey: KHALTI_PUBLIC_KEY,
         productIdentity: order._id,
         productName: "Your Shop Order",
-        amount: order.totalAmount,
+        amount: order.totalAmount ?? order.totalPrice ?? 0,
         orderId: order._id,
         customerInfo: {
-          name: order.shippingAddress.fullName || "Customer",
-          phone: order.shippingAddress.phone,
+          name: order.shippingAddress?.fullName || "Customer",
+          phone: order.shippingAddress?.phone || "",
         },
         onSuccess: (payload) => {
           updateOrderToPaid(order._id, {
@@ -535,7 +497,10 @@ const OrderDetail: React.FC = () => {
               if (response.success && response.data) {
                 setOrder(response.data);
               } else {
-                setError(response.error || "Failed to update payment status");
+                const errorMessage = response.success
+                  ? "Failed to update payment status"
+                  : response.error;
+                setError(errorMessage || "Failed to update payment status");
               }
               setPaymentLoading(false);
             })
@@ -570,6 +535,10 @@ const OrderDetail: React.FC = () => {
     (sum, item) => sum + (item.quantity || 0),
     0
   );
+  const shipping = order.shippingAddress;
+  const taxAmount = order.taxAmount ?? order.taxPrice ?? 0;
+  const shippingAmount = order.shippingAmount ?? order.shippingPrice ?? 0;
+  const totalAmount = order.totalAmount ?? order.totalPrice ?? 0;
 
   return (
     <div className="min-h-screen bg-[radial-gradient(60%_60%_at_15%_10%,rgba(253,230,138,0.35),transparent),radial-gradient(50%_50%_at_85%_0%,rgba(251,191,36,0.2),transparent),linear-gradient(180deg,rgba(255,251,235,0.92),rgba(255,255,255,0.98))] py-12">
@@ -587,7 +556,10 @@ const OrderDetail: React.FC = () => {
                   Order #{order._id.slice(-6).toUpperCase()}
                 </h2>
                 <p className="mt-3 text-amber-100">
-                  Placed on {new Date(order.createdAt).toLocaleDateString()}
+                  Placed on
+                  {order.createdAt
+                    ? ` ${new Date(order.createdAt).toLocaleDateString()}`
+                    : " Date unavailable"}
                 </p>
               </div>
               <div className="flex flex-wrap gap-3">
@@ -598,7 +570,7 @@ const OrderDetail: React.FC = () => {
                 <div className="rounded-2xl border border-amber-200/40 bg-amber-50/15 px-4 py-3">
                   <p className="text-xs text-amber-100/70">Total</p>
                   <p className="text-lg font-semibold text-white">
-                    ${order.totalAmount.toFixed(2)}
+                    ${(order.totalAmount ?? order.totalPrice ?? 0).toFixed(2)}
                   </p>
                 </div>
                 <div className="rounded-2xl border border-amber-200/40 bg-amber-50/15 px-4 py-3">
@@ -665,16 +637,18 @@ const OrderDetail: React.FC = () => {
                     Shipping
                   </p>
                   <p className="mt-3 text-sm font-semibold text-gray-900">
-                    {order.shippingAddress.fullName || "Customer"}
+                    {shipping?.fullName || "Customer"}
                   </p>
                   <p className="mt-2 text-sm text-gray-600">
-                    {order.shippingAddress.address}, {order.shippingAddress.city}
+                    {shipping?.address || "Address unavailable"}
+                    {shipping?.city ? `, ${shipping.city}` : ""}
                   </p>
                   <p className="text-sm text-gray-600">
-                    {order.shippingAddress.postalCode}, {order.shippingAddress.country}
+                    {shipping?.postalCode || "—"}
+                    {shipping?.country ? `, ${shipping.country}` : ""}
                   </p>
                   <p className="mt-3 text-sm text-gray-600">
-                    Phone: {order.shippingAddress.phone || "—"}
+                    Phone: {shipping?.phone || "—"}
                   </p>
                 </div>
 
@@ -708,8 +682,10 @@ const OrderDetail: React.FC = () => {
                             : "text-rose-600"
                         }`}
                       >
-                        {order.isDelivered
-                          ? `Delivered ${new Date(order.deliveredAt!).toLocaleDateString()}`
+                        {order.isDelivered && order.deliveredAt
+                          ? `Delivered ${new Date(
+                              order.deliveredAt
+                            ).toLocaleDateString()}`
                           : "Not delivered"}
                       </span>
                     </div>
@@ -718,15 +694,15 @@ const OrderDetail: React.FC = () => {
                   <div className="mt-6 border-t border-amber-100/60 pt-4 text-sm text-gray-700">
                     <div className="flex items-center justify-between">
                       <span>Tax</span>
-                      <span>${order.taxAmount.toFixed(2)}</span>
+                      <span>${taxAmount.toFixed(2)}</span>
                     </div>
                     <div className="mt-2 flex items-center justify-between">
                       <span>Shipping</span>
-                      <span>${order.shippingAmount.toFixed(2)}</span>
+                      <span>${shippingAmount.toFixed(2)}</span>
                     </div>
                     <div className="mt-3 flex items-center justify-between text-base font-semibold text-gray-900">
                       <span>Total</span>
-                      <span>${order.totalAmount.toFixed(2)}</span>
+                      <span>${totalAmount.toFixed(2)}</span>
                     </div>
                   </div>
 

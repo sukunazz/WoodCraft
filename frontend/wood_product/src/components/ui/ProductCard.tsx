@@ -70,12 +70,14 @@ import { addToCart } from "../../api/cart";
 
 interface ProductCardProps {
   product: Product;
+  onAddToCart?: () => void;
   onAddToCartSuccess?: () => void;
   loading?: boolean;
 }
 
 const ProductCard: React.FC<ProductCardProps> = ({
   product,
+  onAddToCart,
   onAddToCartSuccess,
   loading = false,
 }) => {
@@ -89,13 +91,19 @@ const ProductCard: React.FC<ProductCardProps> = ({
 
     try {
       setIsAdding(true);
-      const res = await addToCart(product._id, 1);
-
-      if (res.success) {
+      if (onAddToCart) {
+        onAddToCart();
         setAddedToCart(true);
         if (onAddToCartSuccess) onAddToCartSuccess();
       } else {
-        setError(res.error || "Failed to add to cart.");
+        const res = await addToCart(product._id, 1);
+
+        if (res.success) {
+          setAddedToCart(true);
+          if (onAddToCartSuccess) onAddToCartSuccess();
+        } else {
+          setError(res.error || "Failed to add to cart.");
+        }
       }
     } catch (err) {
       setError("Something went wrong. Please try again.");
@@ -151,7 +159,10 @@ const ProductCard: React.FC<ProductCardProps> = ({
             <span className="ml-1 text-sm font-medium text-gray-700">
               {(product.ratings?.length &&
                 (
-                  product.ratings.reduce((sum, r) => sum + (r.rating || 0), 0) /
+                  product.ratings.reduce(
+                    (sum: number, r) => sum + (r.rating || 0),
+                    0
+                  ) /
                   product.ratings.length
                 ).toFixed(1)) ||
                 "N/A"}

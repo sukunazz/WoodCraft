@@ -18,7 +18,7 @@ export async function sendDiscordMessage(
     }
 
     // Send to Discord webhook
-    const response = await axios.post(
+    await axios.post(
       webhookUrl,
       { content: message },
       {

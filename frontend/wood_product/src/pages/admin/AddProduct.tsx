@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { addProduct, uploadProductImage } from "../../api/products";
 import { toast } from "react-toastify";
@@ -6,8 +6,6 @@ import {
   FaSave,
   FaTimes,
   FaUpload,
-  FaTag,
-  FaLayerGroup,
   FaChevronLeft,
 } from "react-icons/fa";
 
@@ -33,8 +31,8 @@ const AddProduct = () => {
   });
   const [loading, setLoading] = useState(false);
   const [uploading, setUploading] = useState(false);
-  const [error, setError] = useState(null);
-  const [imagePreview, setImagePreview] = useState(null);
+  const [error, setError] = useState<string | null>(null);
+  const [imagePreview, setImagePreview] = useState<string | null>(null);
 
 
   // Predefined categories for selection
@@ -64,7 +62,11 @@ const AddProduct = () => {
     "Other",
   ];
 
-  const handleChange = (e) => {
+  const handleChange = (
+    e: React.ChangeEvent<
+      HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement
+    >
+  ) => {
     const { name, value } = e.target;
 
     // For number fields, ensure they're properly formatted
@@ -88,9 +90,10 @@ const AddProduct = () => {
 
     // For checkbox (featured)
     if (name === "featured") {
+      const target = e.target as HTMLInputElement;
       setFormData({
         ...formData,
-        [name]: e.target.checked,
+        [name]: target.checked,
       });
       return;
     }
@@ -101,7 +104,7 @@ const AddProduct = () => {
     });
   };
 
-  const handleImageChange = (e) => {
+  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const imageUrl = e.target.value;
     setFormData({
       ...formData,
@@ -116,7 +119,7 @@ const AddProduct = () => {
     }
   };
 
-  const handleImageUpload = async (e) => {
+  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
 
@@ -125,15 +128,19 @@ const AddProduct = () => {
 
     try {
       const response = await uploadProductImage(file);
-      if (response.success && response.data?.url) {
+      const imageUrl = response.success ? response.data?.url : undefined;
+      if (imageUrl) {
         setFormData((prev) => ({
           ...prev,
-          images: [response.data.url],
+          images: [imageUrl],
         }));
-        setImagePreview(response.data.url);
+        setImagePreview(imageUrl);
         toast.success("Image uploaded successfully.");
       } else {
-        setError(response.error || "Failed to upload image");
+        const errorMessage = response.success
+          ? "Failed to upload image"
+          : response.error;
+        setError(errorMessage || "Failed to upload image");
       }
     } catch (err) {
       setError("Failed to upload image. Please try again.");
@@ -143,7 +150,7 @@ const AddProduct = () => {
     }
   };
 
-  const handleSubmit = async (e) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
     setError(null);
@@ -181,7 +188,10 @@ const AddProduct = () => {
         toast.success("Product created successfully.");
         navigate("/admin/products");
       } else {
-        setError(response.error || "Failed to add product");
+        const errorMessage = response.success
+          ? "Failed to add product"
+          : response.error;
+        setError(errorMessage || "Failed to add product");
       }
     } catch (err) {
       console.error("Error adding product:", err);

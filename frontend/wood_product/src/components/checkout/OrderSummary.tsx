@@ -65,9 +65,20 @@
 
 import React from "react";
 import { useCart } from "../../hooks/useCart";
+import { CartItem } from "../../types";
 
-const OrderSummary: React.FC = () => {
-  const { items, subtotal } = useCart();
+interface OrderSummaryProps {
+  items?: CartItem[];
+  totalAmount?: number;
+}
+
+const OrderSummary: React.FC<OrderSummaryProps> = ({
+  items: itemsProp,
+  totalAmount,
+}) => {
+  const { items: cartItems, subtotal: cartSubtotal } = useCart();
+  const items = itemsProp ?? cartItems;
+  const subtotal = typeof totalAmount === "number" ? totalAmount : cartSubtotal;
 
   const shipping = items.length > 0 ? 5.0 : 0;
   const taxRate = 0.13;

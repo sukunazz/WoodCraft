@@ -205,8 +205,14 @@ const Home: React.FC = () => {
           .slice(0, 4);
         setFeaturedProducts(featured);
 
-        // Get newest products based on id (assuming higher id = newer)
-        const newest = [...products].sort((a, b) => b.id - a.id).slice(0, 8);
+        // Get newest products based on created date
+        const newest = [...products]
+          .sort(
+            (a, b) =>
+              new Date(b.createdAt || 0).getTime() -
+              new Date(a.createdAt || 0).getTime()
+          )
+          .slice(0, 8);
         setNewArrivals(newest);
       } catch (err) {
         console.error("Error fetching products:", err);

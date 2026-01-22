@@ -13,17 +13,18 @@ interface CartItemProps {
 const CartItem: React.FC<CartItemProps> = ({ item }) => {
   const { updateQuantity, removeFromCart, loading, itemErrors } = useCart();
   const { product, quantity } = item;
+  const productId = product.id || product._id;
 
   // Get any error for this specific product
-  const itemError = itemErrors?.[product.id];
+  const itemError = itemErrors?.[productId];
 
   const handleQuantityChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     const newQuantity = parseInt(e.target.value);
-    updateQuantity(product.id || product._id, newQuantity);
+    updateQuantity(productId, newQuantity);
   };
 
   const handleRemove = () => {
-    removeFromCart(product.id || product._id);
+    removeFromCart(productId);
   };
 
   return (
@@ -54,12 +55,12 @@ const CartItem: React.FC<CartItemProps> = ({ item }) => {
 
       <div className="flex items-center">
         <div className="mr-4">
-          <label htmlFor={`quantity-${product.id}`} className="sr-only">
+          <label htmlFor={`quantity-${productId}`} className="sr-only">
             Quantity
           </label>
           <select
-            id={`quantity-${product.id}`}
-            name={`quantity-${product.id}`}
+            id={`quantity-${productId}`}
+            name={`quantity-${productId}`}
             value={quantity}
             onChange={handleQuantityChange}
             className={`max-w-full rounded-md border ${

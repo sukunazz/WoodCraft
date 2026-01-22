@@ -114,9 +114,11 @@ import {
   refreshSession,
   logoutUser,
   getAuthStatus,
+  verifyEmail as verifyEmailApi,
+  resendVerification,
 } from "../api/users";
 import { clearTokenFromLocalStorage } from "../utils/localStorage";
-import { User } from "../types";
+import { ApiResponse, User } from "../types";
 
 // Define AuthContext type
 type AuthContextType = {
@@ -127,6 +129,8 @@ type AuthContextType = {
   logout: () => Promise<void>;
   refreshAuth: () => Promise<void>;
   updateAvatar: (avatarUrl: string) => void;
+  verifyEmail: (token: string) => Promise<ApiResponse<null>>;
+  resendVerificationCode: (email: string) => Promise<ApiResponse<null>>;
 };
 
 export const AuthContext = createContext<AuthContextType>({
@@ -139,6 +143,8 @@ export const AuthContext = createContext<AuthContextType>({
   logout: async () => {},
   refreshAuth: async () => {},
   updateAvatar: () => {},
+  verifyEmail: async () => ({ success: false, error: "Not initialized" }),
+  resendVerificationCode: async () => ({ success: false, error: "Not initialized" }),
 });
 
 export const AuthProvider: React.FC<{ children: ReactNode }> = ({
@@ -185,7 +191,8 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
     try {
       const res = await loginUser({ email, password });
       if (!res.success || !res.data) {
-        throw new Error(res.error || "Login failed");
+        const errorMessage = res.success ? "Login failed" : res.error;
+        throw new Error(errorMessage || "Login failed");
       }
 
       // After successful login, fetch updated profile
@@ -197,7 +204,10 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
         if (refreshed.success && refreshed.data) {
           setUser(refreshed.data);
         } else {
-          throw new Error(profile.error || "Failed to fetch profile");
+          const errorMessage = profile.success
+            ? "Failed to fetch profile"
+            : profile.error;
+          throw new Error(errorMessage || "Failed to fetch profile");
         }
       }
     } catch (error) {
@@ -245,6 +255,11 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
     setUser((prev) => (prev ? { ...prev, avatarUrl } : prev));
   };
 
+  const verifyEmail = async (token: string) => verifyEmailApi(token);
+
+  const resendVerificationCode = async (email: string) =>
+    resendVerification(email);
+
   return (
     <AuthContext.Provider
       value={{
@@ -255,6 +270,8 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
         logout,
         refreshAuth,
         updateAvatar,
+        verifyEmail,
+        resendVerificationCode,
       }}
     >
       {children}

@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import { useState } from "react";
 import { useCart } from "../../hooks/useCart";
 import { formatPrice } from "../../utils/formatPrice";
 import { Product } from "../../types";
@@ -13,7 +13,7 @@ const ProductDetails: React.FC<ProductDetailsProps> = ({ product }) => {
   const [showAlert, setShowAlert] = useState(false);
   const { addToCart } = useCart();
 
-  const handleAddToCart = (e) => {
+  const handleAddToCart = (e: React.MouseEvent<HTMLButtonElement>) => {
     e.preventDefault(); // Prevent page reload
     addToCart(product, 1); // Always add 1 item to cart
     setShowAlert(true);
@@ -23,7 +23,8 @@ const ProductDetails: React.FC<ProductDetailsProps> = ({ product }) => {
   if (!product) return null;
 
   // Calculate if product is in stock - using inStock property from your data model
-  const isInStock = product.inStock > 0;
+  const stockCount = product.inStock ?? product.countInStock ?? 0;
+  const isInStock = stockCount > 0;
 
   // Calculate average rating with null/undefined checks
   let averageRating = 0;
@@ -39,7 +40,7 @@ const ProductDetails: React.FC<ProductDetailsProps> = ({ product }) => {
 
     if (validRatings.length > 0) {
       averageRating =
-        validRatings.reduce((sum, review) => sum + review.rating, 0) /
+        validRatings.reduce((sum: number, review) => sum + review.rating, 0) /
         validRatings.length;
     }
   } else if (typeof product.averageRating === "number") {
@@ -126,9 +127,9 @@ const ProductDetails: React.FC<ProductDetailsProps> = ({ product }) => {
               {isInStock ? (
                 <>
                   <span className="text-green-600 font-medium">In Stock</span>
-                  {product.inStock < 10 && (
+                  {stockCount < 10 && (
                     <span className="ml-2 text-orange-500">
-                      Only {product.inStock} left!
+                      Only {stockCount} left!
                     </span>
                   )}
                 </>

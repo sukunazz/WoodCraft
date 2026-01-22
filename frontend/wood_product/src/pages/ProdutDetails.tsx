@@ -15,10 +15,8 @@ const ProductDetailsPage: React.FC = () => {
   const [reviewSubmitted, setReviewSubmitted] = useState(false);
   const [reviewError, setReviewError] = useState<string | null>(null);
 
-  // Check if user is logged in
   const userInfo = localStorage.getItem("userInfo");
-  const isLoggedIn = !!userInfo;
-  const user = isLoggedIn ? JSON.parse(userInfo) : null;
+  const isLoggedIn = Boolean(userInfo);
 
   useEffect(() => {
     const fetchProduct = async () => {
@@ -31,7 +29,10 @@ const ProductDetailsPage: React.FC = () => {
         setProduct(response.data);
         setError(null);
       } else {
-        setError(response.error || "Failed to fetch product details");
+        const errorMessage = response.success
+          ? "Failed to fetch product details"
+          : response.error;
+        setError(errorMessage || "Failed to fetch product details");
         setProduct(null);
       }
       setLoading(false);
@@ -124,10 +125,8 @@ const ProductDetailsPage: React.FC = () => {
   }
 
   // Ensure countInStock is valid for array creation
-  const stockCount =
-    product.countInStock && product.countInStock > 0
-      ? Math.min(product.countInStock, 10)
-      : 0;
+  const countInStock = product.countInStock ?? product.inStock ?? 0;
+  const stockCount = countInStock > 0 ? Math.min(countInStock, 10) : 0;
 
   return (
     <div className="container mx-auto px-4 py-8">
@@ -139,7 +138,7 @@ const ProductDetailsPage: React.FC = () => {
         {/* Product Image */}
         <div className="rounded-lg overflow-hidden shadow-lg">
           <img
-            src={product.image}
+            src={product.image || "/assets/images/product-placeholder.jpg"}
             alt={product.name}
             className="w-full h-auto object-cover"
           />
@@ -150,9 +149,10 @@ const ProductDetailsPage: React.FC = () => {
           <h1 className="text-3xl font-bold mb-2">{product.name}</h1>
 
           <div className="flex items-center mb-4">
-            {renderStars(product.rating)}
+            {renderStars(product.rating ?? 0)}
             <span className="ml-2 text-gray-600">
-              {product.rating.toFixed(1)} ({product.numReviews} reviews)
+              {(product.rating ?? 0).toFixed(1)} ({product.numReviews ?? 0}
+              reviews)
             </span>
           </div>
 
@@ -168,10 +168,10 @@ const ProductDetailsPage: React.FC = () => {
               <span className="font-semibold">Status:</span>
               <span
                 className={
-                  product.countInStock > 0 ? "text-green-600" : "text-red-600"
+                  countInStock > 0 ? "text-green-600" : "text-red-600"
                 }
               >
-                {product.countInStock > 0 ? "In Stock" : "Out of Stock"}
+                {countInStock > 0 ? "In Stock" : "Out of Stock"}
               </span>
             </div>
 
@@ -200,14 +200,14 @@ const ProductDetailsPage: React.FC = () => {
 
           <button
             onClick={addToCartHandler}
-            disabled={product.countInStock === 0}
+            disabled={countInStock === 0}
             className={`w-full py-3 px-4 rounded font-semibold ${
-              product.countInStock > 0
+              countInStock > 0
                 ? "bg-blue-600 hover:bg-blue-700 text-white"
                 : "bg-gray-300 cursor-not-allowed text-gray-500"
             }`}
           >
-            {product.countInStock > 0 ? "Add to Cart" : "Out of Stock"}
+            {countInStock > 0 ? "Add to Cart" : "Out of Stock"}
           </button>
         </div>
       </div>
@@ -226,7 +226,9 @@ const ProductDetailsPage: React.FC = () => {
                   {renderStars(review.rating)}
                 </div>
                 <p className="text-gray-600 text-sm mb-1">
-                  {new Date(review.createdAt).toLocaleDateString()}
+                  {review.createdAt
+                    ? new Date(review.createdAt).toLocaleDateString()
+                    : "Date unavailable"}
                 </p>
                 <p>{review.comment}</p>
               </div>
