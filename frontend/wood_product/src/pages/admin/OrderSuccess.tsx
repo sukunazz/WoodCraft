@@ -174,23 +174,73 @@
 
 // export default OrderSuccess;
 
-import React, { useState, useEffect } from "react";
-import { useParams, Link, useNavigate } from "react-router-dom";
+import { useState, useEffect } from "react";
+import { useParams, useNavigate } from "react-router-dom";
 import { getOrderById, updateOrderStatus } from "../../api/orders";
 import {
   FaArrowLeft,
   FaCheck,
-  FaTimes,
   FaTruck,
   FaPrint,
 } from "react-icons/fa";
 
+type OrderUser = {
+  _id?: string;
+  name?: string;
+  email?: string;
+  phone?: string;
+};
+
+type ShippingAddress = {
+  address?: string;
+  city?: string;
+  state?: string;
+  postalCode?: string;
+  country?: string;
+};
+
+type OrderItem = {
+  name: string;
+  image?: string;
+  variant?: string;
+  price: number;
+  quantity: number;
+};
+
+type PaymentResult = {
+  id: string;
+  status: string;
+  update_time?: string;
+};
+
+type AdminOrder = {
+  _id: string;
+  orderNumber?: string;
+  createdAt?: string;
+  isPaid: boolean;
+  paidAt?: string;
+  isDelivered: boolean;
+  deliveredAt?: string;
+  orderItems: OrderItem[];
+  itemsPrice: number;
+  shippingPrice: number;
+  taxPrice: number;
+  totalPrice: number;
+  paymentMethod?: string;
+  paymentResult?: PaymentResult;
+  user?: OrderUser;
+  customerEmail?: string;
+  customerPhone?: string;
+  shippingAddress?: ShippingAddress;
+  notes?: string;
+};
+
 const OrderSuccess = () => {
-  const { id } = useParams();
+  const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  const [order, setOrder] = useState(null);
+  const [order, setOrder] = useState<AdminOrder | null>(null);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
+  const [error, setError] = useState<string | null>(null);
   const [updateLoading, setUpdateLoading] = useState(false);
 
   useEffect(() => {
@@ -200,10 +250,14 @@ const OrderSuccess = () => {
   const fetchOrderDetails = async () => {
     try {
       setLoading(true);
+      if (!id) {
+        setError("Order ID is missing");
+        return;
+      }
       const response = await getOrderById(id);
 
-      if (response.success) {
-        setOrder(response.data);
+      if (response.success && response.data) {
+        setOrder(response.data as unknown as AdminOrder);
       } else {
         setError(response.error || "Failed to load order details");
       }
@@ -215,13 +269,17 @@ const OrderSuccess = () => {
     }
   };
 
-  const handleStatusUpdate = async (status) => {
+  const handleStatusUpdate = async (status: string) => {
     try {
       setUpdateLoading(true);
+      if (!id) {
+        setError("Order ID is missing");
+        return;
+      }
       const response = await updateOrderStatus(id, status);
 
-      if (response.success) {
-        setOrder(response.data);
+      if (response.success && response.data) {
+        setOrder(response.data as unknown as AdminOrder);
       } else {
         setError(response.error || "Failed to update order status");
       }
@@ -233,7 +291,7 @@ const OrderSuccess = () => {
     }
   };
 
-  const formatDate = (dateString) => {
+  const formatDate = (dateString?: string | Date | null) => {
     if (!dateString) return "Not available";
     const date = new Date(dateString);
     return `${date.toLocaleDateString()} at ${date.toLocaleTimeString()}`;
