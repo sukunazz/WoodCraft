@@ -326,26 +326,42 @@
 
 // export default Products;
 
-import React, { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
+import type { ChangeEvent, FormEvent } from "react";
 import { Link } from "react-router-dom";
 import { getProducts, updateProductStock } from "../../api/products";
-import { FaEdit, FaPlus, FaTrash, FaSearch, FaSort } from "react-icons/fa";
-import { debounce } from "lodash";
+import { FaEdit, FaPlus, FaTrash, FaSearch } from "react-icons/fa";
+
+type ProductRating = {
+  rating: number;
+};
+
+type Product = {
+  _id: string;
+  name: string;
+  price: number;
+  category: string;
+  image?: string;
+  images?: string[];
+  countInStock?: number;
+  inStock?: number;
+  ratings?: ProductRating[];
+};
 
 const Products = () => {
-  const [products, setProducts] = useState([]);
+  const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
+  const [error, setError] = useState<string | null>(null);
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [search, setSearch] = useState("");
   const [searchQuery, setSearchQuery] = useState("");
   const [sortBy, setSortBy] = useState("newest");
   const [categoryFilter, setCategoryFilter] = useState("");
-  const [categories, setCategories] = useState([]);
-  const [updateMode, setUpdateMode] = useState(null);
+  const [updateMode, setUpdateMode] = useState<string | null>(null);
   const [newStock, setNewStock] = useState(0);
-  const [allCategories, setAllCategories] = useState([]);
+  const [allCategories, setAllCategories] = useState<string[]>([]);
+  const debounceTimeout = useRef<number | null>(null);
 
   // Fetch all categories only once when component mounts
   useEffect(() => {
@@ -367,16 +383,18 @@ const Products = () => {
   }, []);
 
   // Debounced search function
-  const debouncedSearch = useCallback(
-    debounce((query) => {
+  const debouncedSearch = useCallback((query: string) => {
+    if (debounceTimeout.current) {
+      window.clearTimeout(debounceTimeout.current);
+    }
+    debounceTimeout.current = window.setTimeout(() => {
       setSearchQuery(query);
       setCurrentPage(1);
-    }, 500),
-    []
-  );
+    }, 500);
+  }, []);
 
   // Handle search input change
-  const handleSearchChange = (e) => {
+  const handleSearchChange = (e: ChangeEvent<HTMLInputElement>) => {
     setSearch(e.target.value);
     debouncedSearch(e.target.value);
   };
@@ -400,18 +418,12 @@ const Products = () => {
         setProducts(response.data.items);
         setTotalPages(response.data.pages);
 
-        // Only update categories if we're not filtering by category
-        if (!categoryFilter) {
-          const uniqueCategories = [
-            ...new Set(response.data.items.map((product) => product.category)),
-          ];
-          setCategories(uniqueCategories);
-        } else {
-          // Use all categories when filtering
-          setCategories(allCategories);
-        }
       } else {
-        setError(response.error);
+        const errorMessage =
+          (response as { error?: string; message?: string }).error ??
+          (response as { error?: string; message?: string }).message ??
+          "Failed to load products";
+        setError(errorMessage);
       }
     } catch (err) {
       setError("Failed to load products");
@@ -421,7 +433,7 @@ const Products = () => {
     }
   };
 
-  const handleStockUpdate = async (productId) => {
+  const handleStockUpdate = async (productId: string) => {
     try {
       const response = await updateProductStock(productId, newStock);
 
@@ -435,7 +447,11 @@ const Products = () => {
         );
         setUpdateMode(null);
       } else {
-        setError(response.error);
+        const errorMessage =
+          (response as { error?: string; message?: string }).error ??
+          (response as { error?: string; message?: string }).message ??
+          "Failed to update stock";
+        setError(errorMessage);
       }
     } catch (err) {
       setError("Failed to update stock");
@@ -443,19 +459,19 @@ const Products = () => {
     }
   };
 
-  const handleCategoryChange = (e) => {
+  const handleCategoryChange = (e: ChangeEvent<HTMLSelectElement>) => {
     setCategoryFilter(e.target.value);
     setCurrentPage(1);
   };
 
-  const handleSearchSubmit = (e) => {
+  const handleSearchSubmit = (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setSearchQuery(search);
     setCurrentPage(1);
   };
 
   // Calculate average rating from ratings array
-  const calculateAverageRating = (ratings) => {
+  const calculateAverageRating = (ratings?: ProductRating[]) => {
     if (!ratings || !Array.isArray(ratings) || ratings.length === 0) {
       return 0;
     }
@@ -468,7 +484,7 @@ const Products = () => {
   };
 
   // Get number of reviews
-  const getReviewCount = (ratings) => {
+  const getReviewCount = (ratings?: ProductRating[]) => {
     return Array.isArray(ratings) ? ratings.length : 0;
   };
 
@@ -577,8 +593,10 @@ const Products = () => {
               </tr>
             </thead>
             <tbody className="bg-white divide-y divide-gray-200">
-              {products.map((product) => (
-                <tr key={product._id} className="hover:bg-gray-50">
+              {products.map((product) => {
+                const stockCount = product.countInStock ?? product.inStock ?? 0;
+                return (
+                  <tr key={product._id} className="hover:bg-gray-50">
                   <td className="px-3 sm:px-6 py-4 whitespace-nowrap">
                     <div className="flex items-center">
                       <div className="flex-shrink-0 h-10 w-10">
@@ -592,8 +610,8 @@ const Products = () => {
                           }
                           alt={product.name}
                           onError={(e) => {
-                            e.target.onerror = null;
-                            e.target.src = "/placeholder.jpg";
+                            e.currentTarget.onerror = null;
+                            e.currentTarget.src = "/placeholder.jpg";
                           }}
                         />
                       </div>
@@ -644,22 +662,19 @@ const Products = () => {
                       <div className="flex items-center">
                         <span
                           className={`text-sm ${
-                            (product.countInStock || product.inStock) > 10
+                            stockCount > 10
                               ? "text-green-600"
-                              : (product.countInStock || product.inStock) > 0
+                              : stockCount > 0
                               ? "text-yellow-600"
                               : "text-red-600"
                           }`}
                         >
-                          {product.countInStock || product.inStock || 0} in
-                          stock
+                          {stockCount} in stock
                         </span>
                         <button
                           onClick={() => {
                             setUpdateMode(product._id);
-                            setNewStock(
-                              product.countInStock || product.inStock || 0
-                            );
+                            setNewStock(stockCount);
                           }}
                           className="ml-2 text-gray-500 hover:text-gray-700"
                         >
@@ -691,16 +706,19 @@ const Products = () => {
                       </button>
                     </div>
                   </td>
-                </tr>
-              ))}
+                    </tr>
+                  );
+                })}
             </tbody>
           </table>
         </div>
 
         {/* Mobile view product cards - shown on smaller screens */}
         <div className="sm:hidden">
-          {products.map((product) => (
-            <div key={product._id} className="border-b border-gray-200 p-4">
+          {products.map((product) => {
+            const stockCount = product.countInStock ?? product.inStock ?? 0;
+            return (
+              <div key={product._id} className="border-b border-gray-200 p-4">
               <div className="flex items-center justify-between mb-2">
                 <div className="flex items-center">
                   <div className="h-12 w-12 flex-shrink-0">
@@ -714,8 +732,8 @@ const Products = () => {
                       }
                       alt={product.name}
                       onError={(e) => {
-                        e.target.onerror = null;
-                        e.target.src = "/placeholder.jpg";
+                        e.currentTarget.onerror = null;
+                        e.currentTarget.src = "/placeholder.jpg";
                       }}
                     />
                   </div>
@@ -744,14 +762,14 @@ const Products = () => {
                 </span>
                 <span
                   className={`${
-                    (product.countInStock || product.inStock) > 10
+                    stockCount > 10
                       ? "text-green-600"
-                      : (product.countInStock || product.inStock) > 0
+                      : stockCount > 0
                       ? "text-yellow-600"
                       : "text-red-600"
                   }`}
                 >
-                  {product.countInStock || product.inStock || 0} in stock
+                  {stockCount} in stock
                 </span>
                 <span className="text-gray-600">
                   Rating: {calculateAverageRating(product.ratings).toFixed(1)} (
@@ -759,7 +777,8 @@ const Products = () => {
                 </span>
               </div>
             </div>
-          ))}
+            );
+          })}
         </div>
 
         {/* Pagination */}
